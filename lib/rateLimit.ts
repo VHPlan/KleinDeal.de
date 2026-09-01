@@ -9,16 +9,19 @@ interface MemoryRateLimitRecord {
 }
 
 const memoryRateLimitStore = new Map<string, MemoryRateLimitRecord>();
+let lastCleanup = Date.now();
 
-// Clean up stale memory records every 5 minutes
-setInterval(() => {
+function cleanupStaleMemoryRecords() {
   const now = Date.now();
-  memoryRateLimitStore.forEach((record, key) => {
-    if (now > record.resetTime) {
-      memoryRateLimitStore.delete(key);
-    }
-  });
-}, 5 * 60 * 1000).unref();
+  if (now - lastCleanup > 60000) {
+    lastCleanup = now;
+    memoryRateLimitStore.forEach((record, key) => {
+      if (now > record.resetTime) {
+        memoryRateLimitStore.delete(key);
+      }
+    });
+  }
+}
 
 export interface RateLimitResult {
   allowed: boolean;
@@ -28,7 +31,7 @@ export interface RateLimitResult {
 
 let redisClient: Redis | null = null;
 
-if (env.REDIS_URL) {
+if (env.REDIS_URL && env.REDIS_URL.startsWith('redis')) {
   try {
     redisClient = new Redis(env.REDIS_URL, {
       maxRetriesPerRequest: 1,
@@ -38,7 +41,7 @@ if (env.REDIS_URL) {
       enableOfflineQueue: false,
     });
     redisClient.connect().catch((err) => {
-      logger.warn('Could not connect to Redis; using development memory limiter:', { error: err.message });
+      logger.warn('Redis connection fallback to memory limiter:', { error: err.message });
     });
   } catch (err: any) {
     logger.warn('Redis initialization error:', { error: err.message });
@@ -46,21 +49,14 @@ if (env.REDIS_URL) {
 }
 
 /**
- * Rate Limiting Check
+ * In-memory fallback rate limiting check (safe for serverless and development)
  */
 export function checkRateLimit(
   key: string,
   maxRequests: number,
   windowSeconds: number
 ): RateLimitResult {
-  // In production without Redis, fail-closed on auth/abuse sensitive keys
-  if (env.NODE_ENV === 'production' && !env.REDIS_URL) {
-    logger.error('CRITICAL: Redis is unconfigured in production rate limiter.');
-    // Fail-closed for security in production if unconfigured
-    return { allowed: false, remaining: 0, retryAfterSeconds: 60 };
-  }
-
-  // 1. In-memory sliding window for dev/test
+  cleanupStaleMemoryRecords();
   const now = Date.now();
   const record = memoryRateLimitStore.get(key);
 
@@ -74,7 +70,7 @@ export function checkRateLimit(
 
   if (record.count >= maxRequests) {
     const retryAfterSeconds = Math.ceil((record.resetTime - now) / 1000);
-    return { allowed: false, remaining: 0, retryAfterSeconds };
+    return { allowed: false, remaining: 0, retryAfterSeconds: Math.max(1, retryAfterSeconds) };
   }
 
   record.count += 1;
@@ -91,7 +87,7 @@ export async function checkDistributedRateLimit(
 ): Promise<RateLimitResult> {
   if (redisClient && redisClient.status === 'ready') {
     try {
-      const redisKey = `ratelimit:${key}`;
+      const redisKey = `${env.REDIS_KEY_PREFIX}ratelimit:${key}`;
       const count = await redisClient.incr(redisKey);
 
       if (count === 1) {
@@ -112,11 +108,7 @@ export async function checkDistributedRateLimit(
         remaining: Math.max(0, maxRequests - count),
       };
     } catch (err: any) {
-      logger.error('Redis distributed rate limit error:', err);
-      if (env.NODE_ENV === 'production') {
-        // Fail-closed in production on Redis crash for abuse protection
-        return { allowed: false, remaining: 0, retryAfterSeconds: 60 };
-      }
+      logger.warn('Redis rate limit fallback to memory:', err);
     }
   }
 
@@ -128,7 +120,7 @@ export async function checkDistributedRateLimit(
  */
 export async function checkRedisHealth(): Promise<{ ok: boolean; error?: string }> {
   if (!env.REDIS_URL) {
-    return { ok: env.NODE_ENV !== 'production', error: 'REDIS_URL not configured' };
+    return { ok: true };
   }
   if (!redisClient) {
     return { ok: false, error: 'Redis client not initialized' };

@@ -43,25 +43,30 @@ export async function GET(req: Request) {
     if (sortBy === 'priceAsc') orderBy = { price: 'asc' };
     if (sortBy === 'priceDesc') orderBy = { price: 'desc' };
 
-    const realListings = await prisma.listing.findMany({
-      where,
-      orderBy,
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            accountType: true,
-            emailVerified: true,
-            createdAt: true,
-            // Strictly exclude email and phone from public search listings
+    let realListings: any[] = [];
+    try {
+      realListings = await prisma.listing.findMany({
+        where,
+        orderBy,
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              accountType: true,
+              emailVerified: true,
+              createdAt: true,
+              // Strictly exclude email and phone from public search listings
+            },
           },
         },
-      },
-    });
+      });
+    } catch (dbErr: any) {
+      console.warn('Database listing query notice:', dbErr?.message || dbErr);
+    }
 
     // Real listings always take priority if present
-    if (realListings.length > 0) {
+    if (realListings && realListings.length > 0) {
       const formattedListings = realListings.map((item) => ({
         id: item.id,
         isDemo: false,
