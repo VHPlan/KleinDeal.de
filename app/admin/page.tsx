@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Shield, AlertTriangle, FileText, CheckCircle, XCircle, UserX, Trash2, Eye } from 'lucide-react';
@@ -15,11 +15,7 @@ export default function AdminDashboardPage() {
   const [accessDenied, setAccessDenied] = useState(false);
   const [feedback, setFeedback] = useState('');
 
-  useEffect(() => {
-    loadData();
-  }, [activeTab]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       if (activeTab === 'reports') {
@@ -48,11 +44,15 @@ export default function AdminDashboardPage() {
         }
       }
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load admin data', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleResolveReport = async (reportId: string, status: string) => {
     try {

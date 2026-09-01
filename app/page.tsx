@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Header from '@/components/Header';
 import CategoryGrid from '@/components/CategoryGrid';
 import ListingCard from '@/components/ListingCard';
@@ -21,6 +21,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function HomePage() {
   const { lang, t } = useLanguage();
@@ -37,7 +38,7 @@ export default function HomePage() {
   const [activeVideo, setActiveVideo] = useState<{ url: string; title: string } | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
 
-  const loadListings = async () => {
+  const loadListings = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -55,11 +56,11 @@ export default function HomePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedCategory, searchQuery, locationQuery]);
 
   useEffect(() => {
     loadListings();
-  }, [selectedCategory, searchQuery, locationQuery]);
+  }, [loadListings]);
 
   const filteredListings = listings
     .filter((item) => {
@@ -145,11 +146,15 @@ export default function HomePage() {
               
               {/* Card 1: Smartphone */}
               <div className="bg-white border border-[#DEE3DE] rounded-xl p-3.5 shadow-restrained flex items-center gap-3 relative z-30 mb-3 hover:border-[#17A673] transition-all">
-                <img
-                  src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=400&q=80"
-                  alt="iPhone"
-                  className="w-16 h-16 rounded-lg object-cover bg-[#F6F7F4] shrink-0"
-                />
+                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-[#F6F7F4] shrink-0">
+                  <Image
+                    src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=400&q=80"
+                    alt="iPhone"
+                    fill
+                    sizes="64px"
+                    className="object-cover"
+                  />
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between text-[10px] text-[#68716A]">
                     <span>Karlsruhe (76131)</span>
@@ -162,11 +167,15 @@ export default function HomePage() {
 
               {/* Card 2: Vehicle */}
               <div className="bg-white border border-[#DEE3DE] rounded-xl p-3.5 shadow-restrained flex items-center gap-3 relative z-20 -mt-2 ml-4 hover:border-[#17A673] transition-all">
-                <img
-                  src="https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=400&q=80"
-                  alt="Auto"
-                  className="w-16 h-16 rounded-lg object-cover bg-[#F6F7F4] shrink-0"
-                />
+                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-[#F6F7F4] shrink-0">
+                  <Image
+                    src="https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=400&q=80"
+                    alt="Auto"
+                    fill
+                    sizes="64px"
+                    className="object-cover"
+                  />
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between text-[10px] text-[#68716A]">
                     <span>Karlsruhe (76133)</span>
@@ -179,11 +188,15 @@ export default function HomePage() {
 
               {/* Card 3: Furniture */}
               <div className="bg-white border border-[#DEE3DE] rounded-xl p-3.5 shadow-restrained flex items-center gap-3 relative z-10 -mt-2 ml-8 hover:border-[#17A673] transition-all">
-                <img
-                  src="https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?auto=format&fit=crop&w=400&q=80"
-                  alt="Esstisch"
-                  className="w-16 h-16 rounded-lg object-cover bg-[#F6F7F4] shrink-0"
-                />
+                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-[#F6F7F4] shrink-0">
+                  <Image
+                    src="https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?auto=format&fit=crop&w=400&q=80"
+                    alt="Esstisch"
+                    fill
+                    sizes="64px"
+                    className="object-cover"
+                  />
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between text-[10px] text-[#68716A]">
                     <span>Rastatt (76437)</span>

@@ -6,6 +6,8 @@ import { useLanguage } from '@/context/LanguageContext';
 import { Listing, formatPrice } from '@/lib/mockData';
 import { MapPin, Play, Heart, ShieldCheck } from 'lucide-react';
 
+import Image from 'next/image';
+
 interface ListingCardProps {
   listing: Listing;
   onOpenVideo?: (videoUrl: string, title: string) => void;
@@ -29,12 +31,14 @@ export default function ListingCard({ listing, onOpenVideo }: ListingCardProps) 
       
       {/* Image Container with aspect ratio 4:3 */}
       <div className="relative aspect-[4/3] w-full bg-[#F6F7F4] overflow-hidden border-b border-[#DEE3DE]">
-        <img
+        <Image
           src={imgSrc}
           alt={title}
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          unoptimized={imgSrc.startsWith('data:')}
           onError={() => setImgSrc(DEFAULT_IMAGE_FALLBACK)}
-          loading="lazy"
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="object-cover group-hover:scale-105 transition-transform duration-300"
         />
 
         {/* Video Badge */}

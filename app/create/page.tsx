@@ -22,6 +22,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 export default function CreateAdPage() {
@@ -380,16 +381,16 @@ export default function CreateAdPage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
               {images.map((img, idx) => (
                 <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-[#DEE3DE] bg-[#F6F7F4] group">
-                  <img src={img} alt="Upload" className="w-full h-full object-cover" />
+                  <Image src={img} alt={`Upload ${idx + 1}`} fill unoptimized sizes="160px" className="object-cover" />
                   <button
                     type="button"
                     onClick={() => setImages(images.filter((_, i) => i !== idx))}
-                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-[#171A17]/80 text-white flex items-center justify-center hover:bg-[#D94C3D] transition-colors"
+                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-[#171A17]/80 text-white flex items-center justify-center hover:bg-[#D94C3D] transition-colors z-10"
                   >
                     <X className="w-4 h-4" />
                   </button>
                   {idx === 0 && (
-                    <span className="absolute bottom-2 left-2 bg-[#17A673] text-white text-[10px] font-bold px-2 py-0.5 rounded">
+                    <span className="absolute bottom-2 left-2 bg-[#17A673] text-white text-[10px] font-bold px-2 py-0.5 rounded z-10">
                       Hauptbild
                     </span>
                   )}

@@ -65,8 +65,8 @@ export default function MessagesPage() {
         if (res.ok) {
           const data = await res.json();
           setConversations(data);
-          if (data.length > 0 && !selectedConvId) {
-            setSelectedConvId(data[0].id);
+          if (data.length > 0) {
+            setSelectedConvId((prev) => prev || data[0].id);
           }
         }
       } catch (e) {

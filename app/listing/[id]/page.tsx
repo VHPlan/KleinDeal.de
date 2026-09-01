@@ -23,6 +23,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function ListingDetailPage({ params }: { params: { id: string } }) {
   const { lang, t } = useLanguage();
@@ -153,10 +154,13 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
             {/* Gallery Box */}
             <div className="bg-white border border-[#DEE3DE] rounded-xl p-4 shadow-subtle space-y-3">
               <div className="relative aspect-[16/10] bg-[#171A17] rounded-lg overflow-hidden group">
-                <img
+                <Image
                   src={activeImage || listing.images?.[0] || 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80'}
                   alt={title}
-                  className="w-full h-full object-contain"
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 66vw"
+                  className="object-contain"
                 />
 
                 {listing.hasVideo && (
@@ -186,7 +190,7 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
                         activeImage === img ? 'border-[#17A673]' : 'border-[#DEE3DE] opacity-70 hover:opacity-100'
                       }`}
                     >
-                      <img src={img} alt={`Produktbild ${idx + 1}`} className="w-full h-full object-cover" />
+                      <Image src={img} alt={`Produktbild ${idx + 1}`} fill sizes="80px" className="object-cover" />
                     </button>
                   ))}
                 </div>

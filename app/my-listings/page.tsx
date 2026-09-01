@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Header from '@/components/Header';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
@@ -17,6 +17,7 @@ import {
   List
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function MyListingsPage() {
   const { user, openAuthModal } = useAuth();
@@ -24,7 +25,7 @@ export default function MyListingsPage() {
   const [myListings, setMyListings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchUserListings = async () => {
+  const fetchUserListings = useCallback(async () => {
     if (!user) {
       setLoading(false);
       return;
@@ -40,11 +41,11 @@ export default function MyListingsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchUserListings();
-  }, [user]);
+  }, [fetchUserListings]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Möchtest du diese Anzeige wirklich löschen?')) return;
@@ -139,10 +140,12 @@ export default function MyListingsPage() {
               >
                 <div className="flex items-center gap-4">
                   <div className="w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 shrink-0 relative">
-                    <img
+                    <Image
                       src={item.images?.[0] || 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80'}
                       alt={item.title}
-                      className="w-full h-full object-cover"
+                      fill
+                      sizes="80px"
+                      className="object-cover"
                     />
                     {item.hasVideo && (
                       <span className="absolute top-1 left-1 bg-red-500 text-white p-1 rounded-full shadow">
