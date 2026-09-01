@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 85" width="360" height="85" fill="none" aria-label="KleinDeal.de Logo White">
+  <!-- Modern Geometric KD Emblem -->
+  <g transform="translate(6, 12)">
+    <rect width="60" height="60" rx="14" fill="#202420" stroke="#2D332D" stroke-width="1.5"/>
+    <text x="30" y="41" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="28" letter-spacing="-1">
+      <tspan fill="#FFFFFF">K</tspan><tspan fill="#17A673">D</tspan>
+    </text>
+    <circle cx="48" cy="18" r="3.5" fill="#17A673"/>
+  </g>
+  
+  <!-- Wordmark & Pill Capsule & Slogan -->
+  <g transform="translate(80, 24)">
+    <text x="0" y="24" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="26" font-weight="900" fill="#FFFFFF" letter-spacing="-0.02em">
+      KLEIN
+    </text>
+    
+    <!-- DEAL Pill Badge -->
+    <rect x="84" y="2" width="76" height="28" rx="7" fill="#17A673"/>
+    <text x="122" y="22" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="900" fill="#FFFFFF" letter-spacing="0.04em">
+      DEAL
+    </text>
+
+    <!-- .de extension -->
+    <text x="166" y="24" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" fill="#DEE3DE">
+      .de
+    </text>
+
+    <!-- Sub-Slogan -->
+    <text x="2" y="44" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" font-weight="700" fill="#DEE3DE" letter-spacing="0.16em">
+      DEIN LOKALER MARKTPLATZ
+    </text>
+  </g>
+</svg>

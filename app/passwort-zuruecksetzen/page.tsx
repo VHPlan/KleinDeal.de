@@ -1,0 +1,153 @@
+'use client';
+
+import React, { useState, Suspense } from 'react';
+import Header from '@/components/Header';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Lock, ArrowRight, CheckCircle2, AlertTriangle } from 'lucide-react';
+import Link from 'next/link';
+
+function ResetPasswordForm() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const token = searchParams.get('token') || '';
+
+  const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!token) {
+      setError('Ungültiger oder fehlender Token. Bitte fordere einen neuen Link an.');
+      return;
+    }
+
+    if (password.length < 10) {
+      setError('Das neue Passwort muss mindestens 10 Zeichen lang sein.');
+      return;
+    }
+
+    if (password !== passwordConfirm) {
+      setError('Die Passwörter stimmen nicht überein.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, newPassword: password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Fehler beim Zurücksetzen.');
+
+      setSuccess(true);
+    } catch (err: any) {
+      setError(err.message || 'Ein Fehler ist aufgetreten.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (success) {
+    return (
+      <div className="bg-white border border-[#DEE3DE] rounded-2xl p-8 shadow-subtle text-center space-y-4">
+        <div className="w-16 h-16 rounded-full bg-[#E9F7F1] border border-[#17A673]/30 flex items-center justify-center mx-auto text-[#17A673]">
+          <CheckCircle2 className="w-8 h-8" />
+        </div>
+        <h1 className="text-xl font-black text-[#151815]">Passwort erfolgreich geändert!</h1>
+        <p className="text-xs text-[#68716A]">Du kannst dich jetzt mit deinem neuen Passwort anmelden.</p>
+        <div className="pt-2">
+          <Link
+            href="/anmelden"
+            className="w-full bg-[#17A673] hover:bg-[#12835B] text-white font-bold text-xs py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all"
+          >
+            <span>Jetzt anmelden</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white border border-[#DEE3DE] rounded-2xl p-8 shadow-subtle space-y-6">
+      <div className="text-center space-y-2">
+        <h1 className="text-2xl font-black text-[#151815]">Neues Passwort vergeben</h1>
+        <p className="text-xs text-[#68716A]">Wähle ein sicheres Passwort mit mindestens 10 Zeichen.</p>
+      </div>
+
+      {error && (
+        <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-[#D94C3D] text-xs font-semibold flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-xs font-bold text-[#151815] uppercase tracking-wider mb-1">
+            Neues Passwort (min. 10 Zeichen)
+          </label>
+          <div className="relative">
+            <input
+              type="password"
+              required
+              placeholder="••••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl pl-9 pr-3 py-2.5 text-xs text-[#151815] focus:outline-none focus:border-[#17A673]"
+            />
+            <Lock className="w-4 h-4 text-[#68716A] absolute left-3 top-3" />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs font-bold text-[#151815] uppercase tracking-wider mb-1">
+            Passwort bestätigen
+          </label>
+          <div className="relative">
+            <input
+              type="password"
+              required
+              placeholder="••••••••••"
+              value={passwordConfirm}
+              onChange={(e) => setPasswordConfirm(e.target.value)}
+              className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl pl-9 pr-3 py-2.5 text-xs text-[#151815] focus:outline-none focus:border-[#17A673]"
+            />
+            <Lock className="w-4 h-4 text-[#68716A] absolute left-3 top-3" />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-[#17A673] hover:bg-[#12835B] text-white font-bold text-xs py-3 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
+        >
+          <span>{loading ? 'Wird gespeichert...' : 'Passwort aktualisieren'}</span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
+      </form>
+    </div>
+  );
+}
+
+export default function PasswortZuruecksetzenPage() {
+  return (
+    <main className="min-h-screen bg-[#F6F7F4] pb-20">
+      <Header />
+      <div className="max-w-md mx-auto px-4 py-16">
+        <Suspense fallback={<div className="text-center py-20 text-xs">Lade...</div>}>
+          <ResetPasswordForm />
+        </Suspense>
+      </div>
+    </main>
+  );
+}

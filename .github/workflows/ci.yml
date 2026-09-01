@@ -1,0 +1,80 @@
+name: KleinDeal CI Quality Gate
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  quality-gate:
+    name: Lint, Type-Check, Schema Parity, Security Audit & Build
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: kleindeal_test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      APP_ENV: test
+      SESSION_SECRET: test_session_secret_key_minimum_32_characters_long_12345
+      DATABASE_URL: "file:./dev.db"
+      POSTGRES_TEST_URL: "postgresql://test_user:test_password@localhost:5432/kleindeal_test_db?sslmode=disable"
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Verify Semantic Prisma Schema Parity
+        run: npm run check-schema
+
+      - name: Run Schema Parity Negative Tests
+        run: npm run test:unit
+
+      - name: Verify No "prisma db push" in Staging/Production Docs & Scripts
+        run: npm run verify:docs
+
+      - name: Generate Prisma Client (SQLite)
+        run: npx prisma generate
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run TypeScript Type-Check
+        run: npm run type-check
+
+      - name: Run Complete Security & Functional Test Suite (SQLite)
+        run: npm test
+
+      - name: Test PostgreSQL Migrations & Engine Integration (PostgreSQL Service)
+        run: npm run test:postgres
+
+      - name: Run Staging Smoke Test Suite
+        run: npm run test:staging
+
+      - name: Run Storage Lifecycle Tests
+        run: npm run test:storage
+
+      - name: Run Production Build
+        run: npm run build

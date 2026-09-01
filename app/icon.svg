@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" aria-label="KleinDeal.de KD Favicon">
+  <rect width="64" height="64" rx="14" fill="#171A17" stroke="#292E29" stroke-width="1.5"/>
+  <text x="31" y="43" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="30" letter-spacing="-1">
+    <tspan fill="#FFFFFF">K</tspan><tspan fill="#17A673">D</tspan>
+  </text>
+  <circle cx="50" cy="18" r="4" fill="#17A673"/>
+</svg>
