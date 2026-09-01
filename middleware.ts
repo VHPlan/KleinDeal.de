@@ -2,12 +2,18 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(req: NextRequest) {
+  const isStaging = process.env.APP_ENV === 'staging';
+
+  // In production / development, pass through immediately with zero overhead
+  if (!isStaging) {
+    return NextResponse.next();
+  }
+
   try {
     const { pathname } = req.nextUrl;
-    const isStaging = process.env.APP_ENV === 'staging';
 
     // 1. Intercept /robots.txt in Staging
-    if (isStaging && pathname === '/robots.txt') {
+    if (pathname === '/robots.txt') {
       return new NextResponse('User-agent: *\nDisallow: /', {
         status: 200,
         headers: {
@@ -18,13 +24,10 @@ export function middleware(req: NextRequest) {
     }
 
     // 2. Private Staging Access Gate
-    if (isStaging && process.env.STAGING_ACCESS_PASSWORD) {
+    if (process.env.STAGING_ACCESS_PASSWORD) {
       const isPublicPath =
         pathname.startsWith('/staging-login') ||
-        pathname.startsWith('/api/staging-access') ||
-        pathname.startsWith('/api/health') ||
-        pathname.startsWith('/api/ready') ||
-        pathname.startsWith('/api/jobs') ||
+        pathname.startsWith('/api/') ||
         pathname.startsWith('/_next') ||
         pathname.startsWith('/uploads') ||
         pathname.startsWith('/brand') ||
@@ -42,16 +45,11 @@ export function middleware(req: NextRequest) {
       }
     }
 
-    // 3. Security headers & response
+    // 3. Add noindex header in staging
     const response = NextResponse.next();
-
-    if (isStaging) {
-      response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
-    }
-
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
     return response;
   } catch (err) {
-    console.error('Middleware execution error caught safely:', err);
     return NextResponse.next();
   }
 }
@@ -59,12 +57,9 @@ export function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon)
-     * - public assets with extensions (.svg, .png, .jpg, .jpeg, .gif, .webp, .ico, .webmanifest)
+     * Official Next.js regex matcher pattern
+     * Excludes _next/static, _next/image, and favicon.ico
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };
