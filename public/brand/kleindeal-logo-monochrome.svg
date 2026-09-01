@@ -1,17 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 90" width="340" height="90" fill="none" aria-label="KleinDeal.de Monochrome Logo">
-  <!-- Symbol -->
-  <g transform="translate(10, 10)">
-    <rect width="70" height="70" rx="16" fill="#171A17"/>
-    <path d="M20 14 H29 V30 L45 14 H56 L39 33 L57 56 H46 L29 36 V56 H20 V14 Z" fill="#FFFFFF"/>
-    <circle cx="52" cy="18" r="10" fill="#68716A"/>
-    <path d="M48 18 L51 21 L57 15" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-  </g>
-  <!-- Wordmark & Slogan -->
-  <g transform="translate(94, 0)">
-    <text x="0" y="46" font-family="Plus Jakarta Sans, Manrope, system-ui, -apple-system, sans-serif" font-size="32" font-weight="800" letter-spacing="-0.03em">
-      <tspan fill="#171A17">KleinDeal</tspan><tspan fill="#68716A" font-size="20" font-weight="400" letter-spacing="0">.de</tspan>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 70" width="260" height="70" fill="none" aria-label="KleinDeal.de Monochrome Logo">
+  <g fill="#171A17">
+    <rect x="0" y="8" width="48" height="48" rx="10" fill="#171A17"/>
+    <text x="24" y="40" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="800" font-size="22" fill="#FFFFFF" letter-spacing="-1">
+      KD
     </text>
-    <text x="0" y="66" font-family="Plus Jakarta Sans, Manrope, system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#68716A" letter-spacing="0.05em">
+  </g>
+  <g transform="translate(60, 0)">
+    <text x="0" y="46" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="32" font-weight="800" letter-spacing="-0.03em">
+      <tspan fill="#171A17">Klein</tspan><tspan fill="#171A17">Deal</tspan><tspan fill="#171A17">.</tspan><tspan fill="#68716A" font-size="20" font-weight="500">de</tspan>
+    </text>
+    <text x="0" y="66" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#68716A" letter-spacing="0.05em">
       DEIN LOKALER MARKTPLATZ
     </text>
   </g>

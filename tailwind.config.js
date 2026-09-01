@@ -7,6 +7,19 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: [
+          'var(--font-inter)',
+          'Inter',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"Segoe UI"',
+          'Roboto',
+          'Helvetica',
+          'Arial',
+          'sans-serif',
+        ],
+      },
       colors: {
         ge: {
           bg: '#FFFFFF',

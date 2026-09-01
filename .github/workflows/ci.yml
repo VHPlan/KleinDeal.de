@@ -52,7 +52,7 @@ jobs:
       - name: Run Schema Parity Negative Tests
         run: npm run test:unit
 
-      - name: Verify No "prisma db push" in Staging/Production Docs & Scripts
+      - name: Verify Prohibited Push Rule in Docs & Scripts
         run: npm run verify:docs
 
       - name: Generate Prisma Client (SQLite)

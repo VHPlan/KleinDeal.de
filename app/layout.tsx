@@ -1,10 +1,18 @@
 import './globals.css';
 import React from 'react';
 import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { AuthProvider } from '@/context/AuthContext';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import Footer from '@/components/Footer';
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+  weight: ['400', '500', '600', '700', '800'],
+});
 
 export const metadata: Metadata = {
   title: 'KleinDeal.de – dein lokaler Marktplatz für Deutschland',
@@ -42,8 +50,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="de">
-      <body className="min-h-screen bg-white flex flex-col antialiased selection:bg-[#17A673] selection:text-white font-sans text-[#151815]">
+    <html lang="de" className={inter.variable}>
+      <body className={`min-h-screen bg-white flex flex-col antialiased selection:bg-[#17A673] selection:text-white font-sans text-[#151815] ${inter.className}`}>
         <AuthProvider>
           <LanguageProvider>
             <div className="flex-1 flex flex-col">

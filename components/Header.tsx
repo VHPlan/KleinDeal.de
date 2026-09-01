@@ -66,18 +66,18 @@ export default function Header({ onSearchChange }: HeaderProps) {
 
               {/* Wordmark & Pill Capsule & Slogan */}
               <div className="flex flex-col justify-center">
-                <div className="flex items-center gap-1.5 leading-none select-none font-sans">
-                  <span className="text-[22px] sm:text-[24px] font-black text-[#171A17] tracking-tight">
+                <div className="flex items-center gap-1.5 leading-none select-none">
+                  <span className="text-[22px] sm:text-[24px] font-extrabold text-[#171A17] tracking-tight">
                     KLEIN
                   </span>
-                  <span className="bg-[#17A673] text-white font-black text-[13px] sm:text-[14px] px-2 py-0.5 rounded-md tracking-wider shadow-sm">
+                  <span className="bg-[#17A673] text-white font-extrabold text-[13px] sm:text-[14px] px-2 py-0.5 rounded-md tracking-wider shadow-sm">
                     DEAL
                   </span>
-                  <span className="text-xs sm:text-sm font-bold text-[#68716A] tracking-normal">
+                  <span className="text-xs sm:text-sm font-medium text-[#68716A] tracking-normal">
                     .de
                   </span>
                 </div>
-                <span className="text-[9px] sm:text-[9.5px] font-bold tracking-[0.16em] text-[#68716A] uppercase font-sans mt-1 select-none">
+                <span className="text-[9px] sm:text-[9.5px] font-medium tracking-[0.16em] text-[#68716A] uppercase mt-1 select-none">
                   Dein lokaler Marktplatz
                 </span>
               </div>

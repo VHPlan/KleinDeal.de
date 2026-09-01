@@ -30,18 +30,18 @@ export default function Footer() {
 
               {/* Wordmark & Capsule */}
               <div className="flex flex-col justify-center">
-                <div className="flex items-center gap-1.5 leading-none select-none font-sans">
-                  <span className="text-xl font-black text-white tracking-tight">
+                <div className="flex items-center gap-1.5 leading-none select-none">
+                  <span className="text-xl font-extrabold text-white tracking-tight">
                     KLEIN
                   </span>
-                  <span className="bg-[#17A673] text-white font-black text-xs px-2 py-0.5 rounded-md tracking-wider shadow-sm">
+                  <span className="bg-[#17A673] text-white font-extrabold text-xs px-2 py-0.5 rounded-md tracking-wider shadow-sm">
                     DEAL
                   </span>
-                  <span className="text-xs font-bold text-[#DEE3DE] tracking-normal">
+                  <span className="text-xs font-medium text-[#DEE3DE] tracking-normal">
                     .de
                   </span>
                 </div>
-                <span className="text-[9px] font-bold tracking-[0.16em] text-[#DEE3DE] uppercase font-sans mt-1 select-none">
+                <span className="text-[9px] font-medium tracking-[0.16em] text-[#DEE3DE] uppercase mt-1 select-none">
                   Dein lokaler Marktplatz
                 </span>
               </div>

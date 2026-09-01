@@ -192,9 +192,9 @@ function buildEmailHtml(title: string, contentHtml: string, actionButton?: { tex
 <head>
   <meta charset="utf-8">
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #F6F7F4; margin: 0; padding: 24px; color: #151815; }
+    body { font-family: Inter, Arial, Helvetica, sans-serif; background-color: #F6F7F4; margin: 0; padding: 24px; color: #151815; }
     .card { max-width: 560px; margin: 0 auto; background: #FFFFFF; border: 1px solid #DEE3DE; border-radius: 12px; padding: 32px; }
-    .logo { font-size: 20px; font-weight: 900; color: #171A17; margin-bottom: 24px; }
+    .logo { font-size: 20px; font-weight: 800; color: #171A17; margin-bottom: 24px; }
     .logo span { color: #17A673; }
     h1 { font-size: 20px; font-weight: 800; color: #151815; margin-top: 0; }
     p { font-size: 14px; line-height: 1.6; color: #4A524D; margin: 16px 0; }
