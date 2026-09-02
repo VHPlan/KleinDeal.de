@@ -13,7 +13,15 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       if (IS_DEMO_MODE_ENABLED) {
         const demoItem = DEMO_LISTINGS.find((l) => l.id === listingId);
         if (demoItem) {
-          return NextResponse.json(demoItem);
+          const hash = listingId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+          const dynamicViews = demoItem.views || (120 + (hash % 180));
+          const dynamicFavorites = (hash % 14) + 3;
+          return NextResponse.json({
+            ...demoItem,
+            views: dynamicViews,
+            viewsCount: dynamicViews,
+            favoritesCount: dynamicFavorites,
+          });
         }
       }
       return NextResponse.json({ error: 'Anzeige nicht gefunden' }, { status: 404 });
@@ -47,6 +55,18 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       return NextResponse.json({ error: 'Anzeige nicht gefunden' }, { status: 404 });
     }
 
+    // Record listing view asynchronously
+    try {
+      await prisma.listingView.create({
+        data: { listingId: item.id },
+      });
+    } catch (_) {}
+
+    const [viewsTotal, favoritesTotal] = await Promise.all([
+      prisma.listingView.count({ where: { listingId: item.id } }),
+      prisma.favorite.count({ where: { listingId: item.id } }),
+    ]);
+
     return NextResponse.json({
       id: item.id,
       isDemo: false,
@@ -69,6 +89,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       images: JSON.parse(item.images || '[]'),
       hasVideo: item.hasVideo,
       videoUrl: item.videoUrl || undefined,
+      views: viewsTotal + 1,
+      viewsCount: viewsTotal + 1,
+      favoritesCount: favoritesTotal,
       seller: {
         id: item.user.id,
         name: item.user.name,

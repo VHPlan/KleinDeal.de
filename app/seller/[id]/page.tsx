@@ -148,7 +148,7 @@ export default function PublicSellerProfilePage({ params }: { params: { id: stri
     <main className="min-h-screen bg-[#F6F7F4] pb-20">
       <Header />
 
-      <div className="max-w-[1380px] mx-auto px-4 sm:px-6 py-8">
+      <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         <Link href="/" className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#68716A] hover:text-[#151815] mb-6">
           <ArrowLeft className="w-4 h-4" />

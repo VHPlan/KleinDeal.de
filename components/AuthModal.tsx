@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
-import { X, User, Mail, Lock, Phone, ArrowRight } from 'lucide-react';
+import { X, User, Mail, Lock, Phone, ArrowRight, ShieldCheck, MapPin } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AuthModal() {
   const { isAuthModalOpen, closeAuthModal, authMode, setAuthMode, login } = useAuth();
@@ -33,7 +34,7 @@ export default function AuthModal() {
           body: JSON.stringify({ email, password }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Login fehlgeschlagen');
+        if (!res.ok) throw new Error(data.error || 'Login fehlgeschlagen. Bitte prüfe deine Zugangsdaten.');
         login(data.user);
         closeAuthModal();
       } else {
@@ -43,7 +44,7 @@ export default function AuthModal() {
           body: JSON.stringify({ name, email, password, phone, city, plz }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Registrierung fehlgeschlagen');
+        if (!res.ok) throw new Error(data.error || 'Registrierung fehlgeschlagen.');
         login(data.user);
         closeAuthModal();
       }
@@ -55,45 +56,51 @@ export default function AuthModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#171A17]/80 backdrop-blur-md animate-fadeIn">
-      <div className="bg-white rounded-2xl overflow-hidden max-w-md w-full shadow-restrained border border-[#DEE3DE] relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#151815]/60 backdrop-blur-sm animate-fadeIn">
+      <div className="bg-white rounded-3xl overflow-hidden max-w-md w-full shadow-2xl border border-[#DEE3DE] relative">
         
         {/* Close Button */}
         <button
           onClick={closeAuthModal}
           aria-label="Schließen"
-          className="absolute top-4 right-4 p-2 rounded-full bg-[#F6F7F4] hover:bg-[#F1F3EE] text-[#68716A] hover:text-[#151815] transition-colors z-10 focus:outline-none focus:ring-2 focus:ring-[#17A673]"
+          className="absolute top-4 right-4 p-2 rounded-full bg-[#F6F7F4] hover:bg-[#E9F7F1] text-[#68716A] hover:text-[#17A673] transition-colors z-10 focus:outline-none focus:ring-2 focus:ring-[#17A673] cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
 
-        {/* Modal Header */}
-        <div className="p-6 bg-[#171A17] text-white text-center space-y-3">
+        {/* Modal Light Modern Header */}
+        <div className="pt-8 pb-4 px-6 bg-gradient-to-b from-[#E9F7F1]/50 via-[#F8FAF8] to-white text-center space-y-3">
           
-          {/* New KD Monogram Symbol for Dark Header */}
-          <div className="w-12 h-12 mx-auto flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" className="w-12 h-12" fill="none">
-              <rect x="12" y="14" width="16" height="72" rx="4" fill="#FFFFFF"/>
-              <path d="M28 22 L52 46 L76 22 C84 30 84 70 76 78 L52 54 L28 78" stroke="#17A673" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-            </svg>
+          {/* Official Branding Logo */}
+          <div className="flex flex-col items-center justify-center select-none">
+            <div className="flex items-center gap-1.5 leading-none">
+              <span className="text-2xl font-black text-[#151815] tracking-tight">
+                KLEIN
+              </span>
+              <span className="bg-[#17A673] text-white font-extrabold text-xs px-2.5 py-1 rounded-md tracking-wider shadow-xs">
+                DEAL.DE
+              </span>
+            </div>
+            <span className="text-[9px] font-bold tracking-[0.2em] text-[#68716A] uppercase mt-1 select-none">
+              Dein lokaler Marktplatz
+            </span>
           </div>
 
-          <h3 className="text-2xl font-black tracking-tight text-white">
-            Klein<span className="text-[#17A673]">Deal</span>.de
-          </h3>
-          <p className="text-xs text-slate-300">
+          <p className="text-xs text-[#68716A] max-w-xs mx-auto">
             {authMode === 'login' 
               ? 'Willkommen zurück! Melde dich an, um fortzufahren.' 
-              : 'Erstelle jetzt dein kostenloses Konto in Deutschland.'}
+              : 'Erstelle jetzt dein kostenloses Konto für Deutschland.'}
           </p>
 
-          {/* Tab Switcher */}
-          <div className="flex bg-[#292E29] p-1 rounded-xl max-w-xs mx-auto mt-4 border border-[#68716A]/30">
+          {/* Light Segmented Pill Switcher */}
+          <div className="flex bg-[#F6F7F4] p-1 rounded-2xl max-w-xs mx-auto border border-[#DEE3DE]">
             <button
               type="button"
               onClick={() => { setAuthMode('login'); setError(''); }}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#17A673] ${
-                authMode === 'login' ? 'bg-[#17A673] text-white shadow-sm' : 'text-slate-300 hover:text-white'
+              className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                authMode === 'login' 
+                  ? 'bg-[#17A673] text-white shadow-xs' 
+                  : 'text-[#68716A] hover:text-[#151815]'
               }`}
             >
               Anmelden
@@ -101,8 +108,10 @@ export default function AuthModal() {
             <button
               type="button"
               onClick={() => { setAuthMode('register'); setError(''); }}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#17A673] ${
-                authMode === 'register' ? 'bg-[#17A673] text-white shadow-sm' : 'text-slate-300 hover:text-white'
+              className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                authMode === 'register' 
+                  ? 'bg-[#17A673] text-white shadow-xs' 
+                  : 'text-[#68716A] hover:text-[#151815]'
               }`}
             >
               Registrieren
@@ -111,10 +120,10 @@ export default function AuthModal() {
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="px-6 pb-6 pt-2 space-y-3.5">
           
           {error && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-[#D94C3D] text-xs font-semibold">
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-[#D94C3D] text-xs font-semibold animate-fadeIn">
               {error}
             </div>
           )}
@@ -132,9 +141,9 @@ export default function AuthModal() {
                   placeholder="z.B. Maximilian Klein"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl pl-9 pr-3 py-2.5 text-xs text-[#151815] focus:outline-none focus:border-[#17A673] focus:ring-2 focus:ring-[#17A673]/20"
+                  className="w-full bg-[#F6F7F4] hover:bg-[#F1F3EE] focus:bg-white border border-[#DEE3DE] focus:border-[#17A673] rounded-2xl pl-9 pr-3 py-2.5 text-xs text-[#151815] placeholder-[#68716A] outline-none transition-all font-medium"
                 />
-                <User className="w-4 h-4 text-[#68716A] absolute left-3 top-3" />
+                <User className="w-4 h-4 text-[#17A673] absolute left-3 top-3 pointer-events-none" />
               </div>
             </div>
           )}
@@ -151,17 +160,28 @@ export default function AuthModal() {
                 placeholder="name@beispiel.de"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl pl-9 pr-3 py-2.5 text-xs text-[#151815] focus:outline-none focus:border-[#17A673] focus:ring-2 focus:ring-[#17A673]/20"
+                className="w-full bg-[#F6F7F4] hover:bg-[#F1F3EE] focus:bg-white border border-[#DEE3DE] focus:border-[#17A673] rounded-2xl pl-9 pr-3 py-2.5 text-xs text-[#151815] placeholder-[#68716A] outline-none transition-all font-medium"
               />
-              <Mail className="w-4 h-4 text-[#68716A] absolute left-3 top-3" />
+              <Mail className="w-4 h-4 text-[#17A673] absolute left-3 top-3 pointer-events-none" />
             </div>
           </div>
 
           {/* Password */}
           <div>
-            <label className="block text-[11px] font-bold text-[#151815] uppercase tracking-wider mb-1">
-              Passwort *
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-[11px] font-bold text-[#151815] uppercase tracking-wider">
+                Passwort *
+              </label>
+              {authMode === 'login' && (
+                <Link
+                  href="/passwort-vergessen"
+                  onClick={closeAuthModal}
+                  className="text-[11px] font-semibold text-[#17A673] hover:underline"
+                >
+                  Passwort vergessen?
+                </Link>
+              )}
+            </div>
             <div className="relative">
               <input
                 type="password"
@@ -169,9 +189,9 @@ export default function AuthModal() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl pl-9 pr-3 py-2.5 text-xs text-[#151815] focus:outline-none focus:border-[#17A673] focus:ring-2 focus:ring-[#17A673]/20"
+                className="w-full bg-[#F6F7F4] hover:bg-[#F1F3EE] focus:bg-white border border-[#DEE3DE] focus:border-[#17A673] rounded-2xl pl-9 pr-3 py-2.5 text-xs text-[#151815] placeholder-[#68716A] outline-none transition-all font-medium"
               />
-              <Lock className="w-4 h-4 text-[#68716A] absolute left-3 top-3" />
+              <Lock className="w-4 h-4 text-[#17A673] absolute left-3 top-3 pointer-events-none" />
             </div>
           </div>
 
@@ -181,26 +201,29 @@ export default function AuthModal() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-bold text-[#151815] uppercase tracking-wider mb-1">
-                    Stadt / City
+                    Stadt / Ort
                   </label>
-                  <input
-                    type="text"
-                    placeholder="Berlin"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl px-3 py-2.5 text-xs text-[#151815] focus:outline-none focus:border-[#17A673] focus:ring-2 focus:ring-[#17A673]/20"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Berlin"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      className="w-full bg-[#F6F7F4] hover:bg-[#F1F3EE] focus:bg-white border border-[#DEE3DE] focus:border-[#17A673] rounded-2xl pl-8 pr-3 py-2.5 text-xs text-[#151815] outline-none transition-all font-medium"
+                    />
+                    <MapPin className="w-3.5 h-3.5 text-[#17A673] absolute left-2.5 top-3 pointer-events-none" />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-[#151815] uppercase tracking-wider mb-1">
-                    PLZ (Zip)
+                    PLZ
                   </label>
                   <input
                     type="text"
                     placeholder="10115"
                     value={plz}
                     onChange={(e) => setPlz(e.target.value)}
-                    className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl px-3 py-2.5 text-xs text-[#151815] focus:outline-none focus:border-[#17A673] focus:ring-2 focus:ring-[#17A673]/20"
+                    className="w-full bg-[#F6F7F4] hover:bg-[#F1F3EE] focus:bg-white border border-[#DEE3DE] focus:border-[#17A673] rounded-2xl px-3 py-2.5 text-xs text-[#151815] outline-none transition-all font-medium"
                   />
                 </div>
               </div>
@@ -215,9 +238,9 @@ export default function AuthModal() {
                     placeholder="+49 176 1234567"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl pl-9 pr-3 py-2.5 text-xs text-[#151815] focus:outline-none focus:border-[#17A673] focus:ring-2 focus:ring-[#17A673]/20"
+                    className="w-full bg-[#F6F7F4] hover:bg-[#F1F3EE] focus:bg-white border border-[#DEE3DE] focus:border-[#17A673] rounded-2xl pl-9 pr-3 py-2.5 text-xs text-[#151815] outline-none transition-all font-medium"
                   />
-                  <Phone className="w-4 h-4 text-[#68716A] absolute left-3 top-3" />
+                  <Phone className="w-4 h-4 text-[#17A673] absolute left-3 top-3 pointer-events-none" />
                 </div>
               </div>
             </>
@@ -227,10 +250,10 @@ export default function AuthModal() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#17A673] hover:bg-[#12835B] text-white font-bold text-sm py-3 rounded-xl shadow-subtle flex items-center justify-center gap-2 transition-all cursor-pointer mt-2 focus:outline-none focus:ring-2 focus:ring-[#17A673]"
+            className="w-full bg-[#17A673] hover:bg-[#12835B] active:scale-98 text-white font-bold text-sm py-3.5 rounded-2xl shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer mt-3 disabled:opacity-50"
           >
             {loading ? (
-              <span>Wird geladen...</span>
+              <span>Wird verarbeitet...</span>
             ) : (
               <>
                 <span>{authMode === 'login' ? 'Jetzt anmelden' : 'Konto kostenlos erstellen'}</span>
@@ -238,6 +261,12 @@ export default function AuthModal() {
               </>
             )}
           </button>
+
+          {/* Trust Footer */}
+          <div className="pt-2 flex items-center justify-center gap-1.5 text-[10px] text-[#68716A]">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#17A673]" />
+            <span>Sicherer Datenschutz • SSL-Verschlüsselt in Deutschland</span>
+          </div>
         </form>
 
       </div>

@@ -12,19 +12,19 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Language>('de');
+  const [lang] = useState<Language>('de');
 
   const setLang = (newLang: Language) => {
-    setLangState(newLang);
+    // Exclusively German (DE)
     if (typeof window !== 'undefined') {
-      localStorage.setItem('kleindeal_lang', newLang);
+      localStorage.setItem('kleindeal_lang', 'de');
     }
   };
 
-  const t = dictionary[lang];
+  const t = dictionary['de'];
 
   return (
-    <LanguageContext.Provider value={{ lang, setLang, t }}>
+    <LanguageContext.Provider value={{ lang: 'de', setLang, t }}>
       {children}
     </LanguageContext.Provider>
   );

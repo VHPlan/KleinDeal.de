@@ -78,8 +78,22 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="bg-white border border-[#DEE3DE] rounded-2xl p-8 shadow-subtle space-y-6">
-      <div className="text-center space-y-2">
+    <div className="bg-white border border-[#DEE3DE] rounded-3xl p-8 shadow-subtle space-y-6">
+      <div className="flex flex-col items-center justify-center select-none mb-2">
+        <div className="flex items-center gap-1.5 leading-none">
+          <span className="text-2xl font-black text-[#151815] tracking-tight">
+            KLEIN
+          </span>
+          <span className="bg-[#17A673] text-white font-extrabold text-xs px-2.5 py-1 rounded-md tracking-wider shadow-xs">
+            DEAL.DE
+          </span>
+        </div>
+        <span className="text-[9px] font-bold tracking-[0.2em] text-[#68716A] uppercase mt-1.5 select-none">
+          Dein lokaler Marktplatz
+        </span>
+      </div>
+
+      <div className="text-center space-y-1">
         <h1 className="text-2xl font-black text-[#151815]">Neues Passwort vergeben</h1>
         <p className="text-xs text-[#68716A]">Wähle ein sicheres Passwort mit mindestens 10 Zeichen.</p>
       </div>

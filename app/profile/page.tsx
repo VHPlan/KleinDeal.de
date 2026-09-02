@@ -82,6 +82,31 @@ export default function ProfilePage() {
     }
   }, [user, activeTab]);
 
+  useEffect(() => {
+    const handleCheckUrlTab = () => {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const t = params.get('tab');
+        if (t && ['overview', 'saved_searches', 'following', 'transactions', 'listings', 'favorites', 'messages', 'profile', 'security', 'notifications'].includes(t)) {
+          setActiveTab(t as any);
+        }
+      }
+    };
+
+    handleCheckUrlTab();
+    window.addEventListener('popstate', handleCheckUrlTab);
+    return () => window.removeEventListener('popstate', handleCheckUrlTab);
+  }, []);
+
+  const handleTabChange = (newTab: any) => {
+    setActiveTab(newTab);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', newTab);
+      window.history.replaceState({}, '', url.toString());
+    }
+  };
+
   const loadTabData = async (tab: string) => {
     try {
       if (tab === 'saved_searches') {
@@ -312,7 +337,7 @@ export default function ProfilePage() {
     <main className="min-h-screen bg-[#F6F7F4] pb-20">
       <Header />
 
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-8">
+      <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         <Link href="/" className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#68716A] hover:text-[#151815] mb-6">
           <ArrowLeft className="w-4 h-4" />
@@ -378,7 +403,7 @@ export default function ProfilePage() {
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => handleTabChange(tab.id)}
                 className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg border transition-colors whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'bg-[#171A17] text-white border-[#171A17]'

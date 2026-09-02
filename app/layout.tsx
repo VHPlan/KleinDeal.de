@@ -4,6 +4,8 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { AuthProvider } from '@/context/AuthContext';
+import { ToastProvider } from '@/context/ToastContext';
+import { FavoritesProvider } from '@/context/FavoritesContext';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import Footer from '@/components/Footer';
 
@@ -54,11 +56,15 @@ export default function RootLayout({
       <body className={`min-h-screen bg-white flex flex-col antialiased selection:bg-[#17A673] selection:text-white font-sans text-[#151815] ${inter.className}`}>
         <AuthProvider>
           <LanguageProvider>
-            <div className="flex-1 flex flex-col">
-              {children}
-            </div>
-            <Footer />
-            <MobileBottomNav />
+            <ToastProvider>
+              <FavoritesProvider>
+                <div className="flex-1 flex flex-col">
+                  {children}
+                </div>
+                <Footer />
+                <MobileBottomNav />
+              </FavoritesProvider>
+            </ToastProvider>
           </LanguageProvider>
         </AuthProvider>
       </body>

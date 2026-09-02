@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import CategoryGrid from '@/components/CategoryGrid';
 import ListingCard from '@/components/ListingCard';
 import VideoModal from '@/components/VideoModal';
+import HeroWidget from '@/components/HeroWidget';
 import { useLanguage } from '@/context/LanguageContext';
 import { Listing } from '@/lib/mockData';
 import { 
@@ -18,21 +19,55 @@ import {
   Layers,
   CheckCircle2,
   Info,
-  Sparkles
+  Sparkles,
+  RotateCcw,
+  X,
+  Bell
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 
 export default function HomePage() {
+  const router = useRouter();
+  const { user } = useAuth();
   const { lang, t } = useLanguage();
+  const { showToast } = useToast();
 
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const handleCreateAdClick = (e: React.MouseEvent) => {
+    if (!user) {
+      e.preventDefault();
+      router.push('/anmelden?redirect=/create');
+    }
+  };
+
+  const handleSaveSearch = () => {
+    const queryDesc = searchQuery || selectedCategory || locationQuery || 'Alle Angebote';
+    const saved = JSON.parse(localStorage.getItem('kleindeal_saved_searches') || '[]');
+    saved.push({
+      id: 'search-' + Date.now(),
+      query: queryDesc,
+      date: new Date().toLocaleDateString('de-DE'),
+    });
+    localStorage.setItem('kleindeal_saved_searches', JSON.stringify(saved));
+    showToast(`✓ Suchauftrag "${queryDesc}" gespeichert! Du wirst bei neuen Angeboten benachrichtigt.`, 'success');
+  };
+
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [locationQuery, setLocationQuery] = useState('');
   const [conditionFilter, setConditionFilter] = useState<string>('all');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [deliveryFilter, setDeliveryFilter] = useState<'all' | 'abholung' | 'versand'>('all');
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'priceAsc' | 'priceDesc'>('newest');
 
   const [activeVideo, setActiveVideo] = useState<{ url: string; title: string } | null>(null);
@@ -43,6 +78,7 @@ export default function HomePage() {
     try {
       const params = new URLSearchParams();
       if (selectedCategory) params.set('category', selectedCategory);
+      if (selectedSubcategory) params.set('subcategory', selectedSubcategory);
       if (searchQuery) params.set('search', searchQuery);
       if (locationQuery) params.set('location', locationQuery);
 
@@ -56,7 +92,7 @@ export default function HomePage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory, searchQuery, locationQuery]);
+  }, [selectedCategory, selectedSubcategory, searchQuery, locationQuery]);
 
   useEffect(() => {
     loadListings();
@@ -64,7 +100,27 @@ export default function HomePage() {
 
   const filteredListings = listings
     .filter((item) => {
+      // Condition filter
       if (conditionFilter !== 'all' && item.condition !== conditionFilter) {
+        return false;
+      }
+      // Min price
+      if (minPrice && item.price < parseFloat(minPrice)) {
+        return false;
+      }
+      // Max price
+      if (maxPrice && item.price > parseFloat(maxPrice)) {
+        return false;
+      }
+      // Delivery filter
+      if (deliveryFilter === 'abholung' && item.deliveryOptions && !item.deliveryOptions.toLowerCase().includes('abholung')) {
+        return false;
+      }
+      if (deliveryFilter === 'versand' && item.deliveryOptions && !item.deliveryOptions.toLowerCase().includes('versand')) {
+        return false;
+      }
+      // Verified only
+      if (verifiedOnly && !item.seller?.verified && !item.seller?.identityVerified && !item.seller?.emailVerified) {
         return false;
       }
       return true;
@@ -75,15 +131,25 @@ export default function HomePage() {
       return 0;
     });
 
-  // Check if current displayed listings are demo listings
-  const isShowingDemoData = listings.length > 0 && listings.some((l) => l.isDemo);
+  const activeFilterCount = (conditionFilter !== 'all' ? 1 : 0) + 
+    (minPrice ? 1 : 0) + 
+    (maxPrice ? 1 : 0) + 
+    (deliveryFilter !== 'all' ? 1 : 0) + 
+    (verifiedOnly ? 1 : 0);
 
-  // Group demo items into 3 curated homepage sections if no filter is active
-  const isFilteringActive = selectedCategory || searchQuery || locationQuery || conditionFilter !== 'all';
-  
-  const recentSection = filteredListings.slice(0, 8);
-  const popularSection = filteredListings.slice(8, 16);
-  const discoveredSection = filteredListings.slice(16, 24);
+  const resetAllFilters = () => {
+    setSelectedCategory(null);
+    setSelectedSubcategory(null);
+    setSearchQuery('');
+    setLocationQuery('');
+    setConditionFilter('all');
+    setMinPrice('');
+    setMaxPrice('');
+    setDeliveryFilter('all');
+    setVerifiedOnly(false);
+  };
+
+  const isFilteringActive = selectedCategory || selectedSubcategory || searchQuery || locationQuery || conditionFilter !== 'all' || minPrice !== '' || maxPrice !== '' || deliveryFilter !== 'all' || verifiedOnly;
 
   return (
     <main className="min-h-screen bg-white pb-16">
@@ -96,11 +162,11 @@ export default function HomePage() {
 
       {/* Hero Banner Section (Background #F6F7F4) */}
       <section className="bg-[#F6F7F4] border-b border-[#DEE3DE] py-12 lg:py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-[1380px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <div className="max-w-[1536px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
           {/* Left Hero Column */}
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-[#151815] tracking-tight leading-[1.1]">
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-[#151815] tracking-tight leading-[1.15]">
               Einfach kaufen. Einfach verkaufen.
               <span className="block text-[#17A673] mt-1">
                 Direkt in deiner Nähe.
@@ -140,86 +206,34 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right Hero Column: 3 Overlapping Restrained Product Showcase Cards */}
-          <div className="lg:col-span-5 relative py-6 flex justify-center">
-            <div className="relative w-full max-w-md">
-              
-              {/* Card 1: Smartphone */}
-              <div className="bg-white border border-[#DEE3DE] rounded-xl p-3.5 shadow-restrained flex items-center gap-3 relative z-30 mb-3 hover:border-[#17A673] transition-all">
-                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-[#F6F7F4] shrink-0">
-                  <Image
-                    src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=400&q=80"
-                    alt="iPhone"
-                    fill
-                    sizes="64px"
-                    className="object-cover"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between text-[10px] text-[#68716A]">
-                    <span>Karlsruhe (76131)</span>
-                    <span className="text-[#17A673] font-bold">Geprüft</span>
-                  </div>
-                  <h4 className="font-bold text-xs text-[#151815] truncate">Apple iPhone 15 Pro 256GB</h4>
-                  <div className="font-black text-sm text-[#151815] mt-0.5">849 € VB</div>
-                </div>
-              </div>
-
-              {/* Card 2: Vehicle */}
-              <div className="bg-white border border-[#DEE3DE] rounded-xl p-3.5 shadow-restrained flex items-center gap-3 relative z-20 -mt-2 ml-4 hover:border-[#17A673] transition-all">
-                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-[#F6F7F4] shrink-0">
-                  <Image
-                    src="https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=400&q=80"
-                    alt="Auto"
-                    fill
-                    sizes="64px"
-                    className="object-cover"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between text-[10px] text-[#68716A]">
-                    <span>Karlsruhe (76133)</span>
-                    <span>Vor 2 Std</span>
-                  </div>
-                  <h4 className="font-bold text-xs text-[#151815] truncate">Volkswagen Golf 7 1.6 TDI</h4>
-                  <div className="font-black text-sm text-[#151815] mt-0.5">9.850 € VB</div>
-                </div>
-              </div>
-
-              {/* Card 3: Furniture */}
-              <div className="bg-white border border-[#DEE3DE] rounded-xl p-3.5 shadow-restrained flex items-center gap-3 relative z-10 -mt-2 ml-8 hover:border-[#17A673] transition-all">
-                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-[#F6F7F4] shrink-0">
-                  <Image
-                    src="https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?auto=format&fit=crop&w=400&q=80"
-                    alt="Esstisch"
-                    fill
-                    sizes="64px"
-                    className="object-cover"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between text-[10px] text-[#68716A]">
-                    <span>Rastatt (76437)</span>
-                    <span className="text-[#17A673] font-bold">Geprüft</span>
-                  </div>
-                  <h4 className="font-bold text-xs text-[#151815] truncate">Massivholz-Esstisch mit Stühlen</h4>
-                  <div className="font-black text-sm text-[#151815] mt-0.5">480 € VB</div>
-                </div>
-              </div>
-
-            </div>
+          {/* Right Hero Column: Modern Interactive Explorer & Live Deals Widget */}
+          <div className="lg:col-span-5 relative flex justify-center items-center">
+            <HeroWidget
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              locationQuery={locationQuery}
+              setLocationQuery={setLocationQuery}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              listings={filteredListings}
+            />
           </div>
 
         </div>
       </section>
 
       {/* Main Content Container */}
-      <div className="max-w-[1380px] mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+      <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         
         {/* Category Section */}
         <CategoryGrid
           selectedCategory={selectedCategory}
-          onSelectCategory={(catId) => setSelectedCategory(catId)}
+          onSelectCategory={(catId) => {
+            setSelectedCategory(catId);
+            setSelectedSubcategory(null);
+          }}
+          selectedSubcategory={selectedSubcategory}
+          onSelectSubcategory={(sub) => setSelectedSubcategory(sub)}
         />
 
         {/* Listings Section Header */}
@@ -231,28 +245,6 @@ export default function HomePage() {
                   {t.latestListings}
                 </h3>
 
-                {/* Tasteful Demo Preview Badge & Information Tooltip */}
-                {isShowingDemoData && (
-                  <div className="relative inline-flex items-center">
-                    <span className="bg-[#E9F7F1] text-[#17A673] border border-[#17A673]/30 text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-[#17A673]" />
-                      <span>Vorschau mit Beispielanzeigen</span>
-                      <button
-                        type="button"
-                        onClick={() => setShowTooltip(!showTooltip)}
-                        className="text-[#17A673] hover:text-[#12835B] ml-0.5 focus:outline-none"
-                      >
-                        <Info className="w-3.5 h-3.5" />
-                      </button>
-                    </span>
-
-                    {showTooltip && (
-                      <div className="absolute left-0 top-7 z-50 w-72 bg-[#171A17] text-white text-xs p-3 rounded-xl shadow-xl border border-[#DEE3DE]/20 animate-fadeIn">
-                        Diese Anzeigen dienen aktuell nur zur Darstellung der Plattform.
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
 
               <p className="text-xs text-[#68716A] mt-0.5">
@@ -260,12 +252,42 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Filter Controls */}
-            <div className="flex items-center gap-3 text-xs">
+            {/* Filter & Sort Controls */}
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              {/* Filter Panel Toggle Button */}
+              <button
+                type="button"
+                onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)}
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl border font-bold transition-all cursor-pointer ${
+                  isFilterPanelOpen || activeFilterCount > 0
+                    ? 'bg-[#E9F7F1] border-[#17A673] text-[#17A673] ring-2 ring-[#17A673]/20 shadow-2xs'
+                    : 'bg-white hover:bg-[#F6F7F4] border-[#DEE3DE] text-[#151815]'
+                }`}
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <span>Filter</span>
+                {activeFilterCount > 0 && (
+                  <span className="w-4 h-4 rounded-full bg-[#17A673] text-white text-[10px] flex items-center justify-center font-bold">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Save Search Button */}
+              <button
+                type="button"
+                onClick={handleSaveSearch}
+                className="flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-[#E9F7F1] hover:text-[#17A673] border border-[#DEE3DE] rounded-xl text-xs font-semibold text-[#151815] transition-colors cursor-pointer"
+                title="Suchauftrag speichern"
+              >
+                <Bell className="w-3.5 h-3.5 text-[#17A673]" />
+                <span className="hidden sm:inline">Suche speichern</span>
+              </button>
+
               <select
                 value={conditionFilter}
                 onChange={(e) => setConditionFilter(e.target.value)}
-                className="bg-white border border-[#DEE3DE] text-xs text-[#151815] rounded-xl px-3 py-2 focus:outline-none cursor-pointer"
+                className="bg-white hover:bg-[#F6F7F4] border border-[#DEE3DE] text-xs text-[#151815] font-semibold rounded-xl px-3 py-2 focus:outline-none cursor-pointer"
               >
                 <option value="all">{t.conditionAll}</option>
                 <option value="Neu">{t.conditionNew}</option>
@@ -276,7 +298,7 @@ export default function HomePage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="bg-white border border-[#DEE3DE] text-xs text-[#151815] rounded-xl px-3 py-2 focus:outline-none cursor-pointer"
+                className="bg-white hover:bg-[#F6F7F4] border border-[#DEE3DE] text-xs text-[#151815] font-semibold rounded-xl px-3 py-2 focus:outline-none cursor-pointer"
               >
                 <option value="newest">{t.sortNewest}</option>
                 <option value="priceAsc">{t.sortPriceAsc}</option>
@@ -284,6 +306,115 @@ export default function HomePage() {
               </select>
             </div>
           </div>
+
+          {/* Expandable Advanced Filters Panel */}
+          {isFilterPanelOpen && (
+            <div className="mb-6 p-4 sm:p-5 bg-[#F6F7F4] border border-[#DEE3DE] rounded-2xl shadow-subtle animate-fadeIn space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#151815] uppercase tracking-wider flex items-center gap-1.5">
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-[#17A673]" />
+                  <span>Erweiterte Filter</span>
+                </span>
+                {activeFilterCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={resetAllFilters}
+                    className="text-xs text-[#D94C3D] hover:underline flex items-center gap-1 font-semibold cursor-pointer"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Alle zurücksetzen</span>
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Price Range */}
+                <div>
+                  <label className="block text-[11px] font-bold text-[#68716A] mb-1.5">
+                    Preisbereich (€)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      placeholder="Min €"
+                      value={minPrice}
+                      onChange={(e) => setMinPrice(e.target.value)}
+                      className="w-full bg-white border border-[#DEE3DE] focus:border-[#17A673] rounded-xl px-3 py-2 text-xs font-medium text-[#151815] outline-none"
+                    />
+                    <span className="text-[#68716A] text-xs font-bold">–</span>
+                    <input
+                      type="number"
+                      placeholder="Max €"
+                      value={maxPrice}
+                      onChange={(e) => setMaxPrice(e.target.value)}
+                      className="w-full bg-white border border-[#DEE3DE] focus:border-[#17A673] rounded-xl px-3 py-2 text-xs font-medium text-[#151815] outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Delivery Option */}
+                <div>
+                  <label className="block text-[11px] font-bold text-[#68716A] mb-1.5">
+                    Übergabe & Versand
+                  </label>
+                  <div className="grid grid-cols-3 gap-1 bg-white border border-[#DEE3DE] p-1 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={() => setDeliveryFilter('all')}
+                      className={`py-1.5 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
+                        deliveryFilter === 'all'
+                          ? 'bg-[#17A673] text-white shadow-2xs'
+                          : 'text-[#68716A] hover:text-[#151815]'
+                      }`}
+                    >
+                      Alle
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeliveryFilter('abholung')}
+                      className={`py-1.5 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
+                        deliveryFilter === 'abholung'
+                          ? 'bg-[#17A673] text-white shadow-2xs'
+                          : 'text-[#68716A] hover:text-[#151815]'
+                      }`}
+                    >
+                      Abholung
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeliveryFilter('versand')}
+                      className={`py-1.5 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
+                        deliveryFilter === 'versand'
+                          ? 'bg-[#17A673] text-white shadow-2xs'
+                          : 'text-[#68716A] hover:text-[#151815]'
+                      }`}
+                    >
+                      Versand
+                    </button>
+                  </div>
+                </div>
+
+                {/* Verified Sellers Toggle */}
+                <div>
+                  <label className="block text-[11px] font-bold text-[#68716A] mb-1.5">
+                    Sicherheit
+                  </label>
+                  <label className="flex items-center gap-2.5 bg-white border border-[#DEE3DE] hover:border-[#17A673] p-2 rounded-xl cursor-pointer transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={verifiedOnly}
+                      onChange={(e) => setVerifiedOnly(e.target.checked)}
+                      className="w-4 h-4 text-[#17A673] rounded border-[#DEE3DE] focus:ring-[#17A673] accent-[#17A673]"
+                    />
+                    <span className="text-xs font-bold text-[#151815] flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#17A673]" />
+                      <span>Nur geprüfte Nutzer</span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
 
           {loading ? (
             <div className="text-center py-16 text-xs text-[#68716A] font-medium">
@@ -306,6 +437,7 @@ export default function HomePage() {
                 <button
                   onClick={() => {
                     setSelectedCategory(null);
+                    setSelectedSubcategory(null);
                     setSearchQuery('');
                     setLocationQuery('');
                     setConditionFilter('all');
@@ -322,69 +454,9 @@ export default function HomePage() {
                 </Link>
               </div>
             </div>
-          ) : isShowingDemoData && !isFilteringActive ? (
-            /* 3 Curated Sections for Demo Mode Homepage Presentation */
-            <div className="space-y-12">
-              
-              {/* Section 1: Neu in deiner Nähe */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-base font-bold text-[#151815]">Neu in deiner Nähe</h4>
-                  <span className="text-xs text-[#68716A] font-medium">{recentSection.length} Angebote</span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-                  {recentSection.map((item) => (
-                    <ListingCard
-                      key={item.id}
-                      listing={item}
-                      onOpenVideo={(url, title) => setActiveVideo({ url, title })}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Section 2: Beliebte Angebote */}
-              {popularSection.length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-base font-bold text-[#151815]">Beliebte Angebote</h4>
-                    <span className="text-xs text-[#68716A] font-medium">{popularSection.length} Angebote</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-                    {popularSection.map((item) => (
-                      <ListingCard
-                        key={item.id}
-                        listing={item}
-                        onOpenVideo={(url, title) => setActiveVideo({ url, title })}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Section 3: Für dich entdeckt */}
-              {discoveredSection.length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-base font-bold text-[#151815]">Für dich entdeckt</h4>
-                    <span className="text-xs text-[#68716A] font-medium">{discoveredSection.length} Angebote</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-                    {discoveredSection.map((item) => (
-                      <ListingCard
-                        key={item.id}
-                        listing={item}
-                        onOpenVideo={(url, title) => setActiveVideo({ url, title })}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-            </div>
           ) : (
-            /* Standard Filtered Grid */
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            /* Real Listings Grid */
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
               {filteredListings.map((item) => (
                 <ListingCard
                   key={item.id}
@@ -396,52 +468,62 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* Trust Section */}
-        <section className="my-16 py-12 px-6 bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-            <div className="bg-white p-6 rounded-xl border border-[#DEE3DE] shadow-subtle">
-              <div className="w-10 h-10 rounded-xl bg-[#E9F7F1] text-[#17A673] flex items-center justify-center mb-3">
-                <ShieldCheck className="w-5 h-5" />
+
+
+        {/* Modern Light Seller CTA Banner */}
+        <section className="my-14 relative overflow-hidden bg-gradient-to-br from-[#E9F7F1]/80 via-white to-[#F6F7F4] border border-[#DEE3DE] rounded-3xl p-8 sm:p-12 shadow-subtle">
+          {/* Subtle Ambient Decorative Glows */}
+          <div className="absolute -top-16 -right-16 w-64 h-64 bg-[#17A673]/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-16 -left-16 w-64 h-64 bg-[#17A673]/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
+            <div className="space-y-3.5 text-center lg:text-left max-w-2xl">
+              {/* Modern Badge */}
+              <div className="inline-flex items-center gap-1.5 bg-white border border-[#17A673]/30 px-3 py-1 rounded-full text-xs font-bold text-[#17A673] shadow-2xs">
+                <Sparkles className="w-3.5 h-3.5 text-[#17A673]" />
+                <span>100% Kostenlos • Keine Verkaufsgebühren</span>
               </div>
-              <h4 className="font-bold text-[#151815] text-sm mb-1">{t.why1Title}</h4>
-              <p className="text-xs text-[#68716A] leading-relaxed">{t.why1Desc}</p>
+
+              {/* Title */}
+              <h3 className="text-2xl sm:text-3xl font-black text-[#151815] tracking-tight leading-tight">
+                {t.sellerCtaTitle}
+              </h3>
+
+              {/* Description */}
+              <p className="text-xs sm:text-sm text-[#68716A] leading-relaxed">
+                {t.sellerCtaDesc}
+              </p>
+
+              {/* 3 Quick Benefit Bullets */}
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-1 text-xs font-bold text-[#151815]">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-[#17A673]" />
+                  <span>In unter 2 Min. online</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-[#17A673]" />
+                  <span>Direkter Kontakt & Chat</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-[#17A673]" />
+                  <span>Sichere Barzahlung vor Ort</span>
+                </div>
+              </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl border border-[#DEE3DE] shadow-subtle">
-              <div className="w-10 h-10 rounded-xl bg-[#E9F7F1] text-[#17A673] flex items-center justify-center mb-3">
-                <CheckCircle2 className="w-5 h-5" />
-              </div>
-              <h4 className="font-bold text-[#151815] text-sm mb-1">{t.why2Title}</h4>
-              <p className="text-xs text-[#68716A] leading-relaxed">{t.why2Desc}</p>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl border border-[#DEE3DE] shadow-subtle">
-              <div className="w-10 h-10 rounded-xl bg-[#E9F7F1] text-[#17A673] flex items-center justify-center mb-3">
-                <MapPin className="w-5 h-5" />
-              </div>
-              <h4 className="font-bold text-[#151815] text-sm mb-1">{t.why3Title}</h4>
-              <p className="text-xs text-[#68716A] leading-relaxed">{t.why3Desc}</p>
+            {/* CTA Button */}
+            <div className="shrink-0 flex flex-col sm:flex-row items-center gap-3">
+              <Link
+                href="/create"
+                onClick={handleCreateAdClick}
+                className="bg-[#17A673] hover:bg-[#12835B] active:scale-95 text-white font-extrabold text-sm px-8 py-4 rounded-2xl shadow-sm hover:shadow-md transition-all flex items-center gap-2 group cursor-pointer"
+              >
+                <Plus className="w-4 h-4 stroke-[3]" />
+                <span>{t.sellerCtaBtn}</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </div>
           </div>
-        </section>
-
-        {/* Seller CTA Banner */}
-        <section className="my-12 bg-[#171A17] text-white rounded-xl p-8 sm:p-12 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-restrained">
-          <div className="space-y-2 text-center sm:text-left">
-            <h3 className="text-2xl font-black text-white tracking-tight">
-              {t.sellerCtaTitle}
-            </h3>
-            <p className="text-xs sm:text-sm text-[#68716A] text-slate-300 max-w-xl">
-              {t.sellerCtaDesc}
-            </p>
-          </div>
-
-          <Link
-            href="/create"
-            className="bg-[#17A673] hover:bg-[#12835B] text-white font-bold text-xs sm:text-sm px-6 py-3.5 rounded-xl shrink-0 shadow-sm transition-colors cursor-pointer"
-          >
-            {t.sellerCtaBtn}
-          </Link>
         </section>
 
       </div>

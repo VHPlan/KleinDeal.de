@@ -12,6 +12,7 @@ export async function GET(req: Request) {
     const search = searchParams.get('search')?.toLowerCase().trim();
     const location = searchParams.get('location')?.toLowerCase().trim();
     const videoOnly = searchParams.get('videoOnly') === 'true';
+    const subcategory = searchParams.get('subcategory');
     const condition = searchParams.get('condition');
     const sortBy = searchParams.get('sortBy');
 
@@ -21,6 +22,7 @@ export async function GET(req: Request) {
     };
 
     if (category) where.categorySlug = category;
+    if (subcategory) where.subcategory = subcategory;
     if (videoOnly) where.hasVideo = true;
     if (condition && condition !== 'all') where.condition = condition;
 

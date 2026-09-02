@@ -1,15 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Header from '@/components/Header';
 import { useAuth } from '@/context/AuthContext';
-import { User, Mail, Lock, Phone, ArrowRight } from 'lucide-react';
+import { User, Mail, Lock, Phone, ArrowRight, ShieldCheck, MapPin } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function RegistrierenPage() {
+function RegistrierenForm() {
   const { login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTarget = searchParams.get('redirect') || '/profile';
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -56,7 +58,7 @@ export default function RegistrierenPage() {
       if (!res.ok) throw new Error(data.error || 'Registrierung fehlgeschlagen');
 
       login(data.user);
-      router.push('/profile');
+      router.push(redirectTarget);
     } catch (err: any) {
       setError(err.message || 'Ein Fehler ist aufgetreten');
     } finally {
@@ -65,129 +67,209 @@ export default function RegistrierenPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#F6F7F4] pb-20">
-      <Header />
+    <div className="max-w-md mx-auto px-4 py-12">
+      <div className="bg-white border border-[#DEE3DE] rounded-3xl p-8 shadow-subtle space-y-6">
+        {/* Official Logo */}
+        <div className="flex flex-col items-center justify-center select-none mb-2">
+          <div className="flex items-center gap-1.5 leading-none">
+            <span className="text-2xl font-black text-[#151815] tracking-tight">
+              KLEIN
+            </span>
+            <span className="bg-[#17A673] text-white font-extrabold text-xs px-2.5 py-1 rounded-md tracking-wider shadow-xs">
+              DEAL.DE
+            </span>
+          </div>
+          <span className="text-[9px] font-bold tracking-[0.2em] text-[#68716A] uppercase mt-1.5 select-none">
+            Dein lokaler Marktplatz
+          </span>
+        </div>
 
-      <div className="max-w-md mx-auto px-4 py-12">
-        <div className="bg-white border border-[#DEE3DE] rounded-xl p-8 shadow-subtle space-y-6">
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl font-black text-[#151815]">Konto erstellen</h1>
-            <p className="text-xs text-[#68716A]">Registriere dich kostenlos auf KleinDeal.de</p>
+        <div className="text-center space-y-1">
+          <h1 className="text-2xl font-black text-[#151815]">Konto erstellen</h1>
+          <p className="text-xs text-[#68716A]">
+            {redirectTarget === '/create' 
+              ? 'Erstelle ein kostenloses Konto, um deine Anzeige zu veröffentlichen.' 
+              : 'Registriere dich kostenlos auf KleinDeal.de'}
+          </p>
+        </div>
+
+        {error && (
+          <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-[#D94C3D] text-xs font-semibold">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-[#151815] uppercase tracking-wider mb-1">Name & Nachname *</label>
+            <div className="relative">
+              <input
+                type="text"
+                required
+                placeholder="z.B. Max Mustermann"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl pl-9 pr-3 py-2.5 text-xs text-[#151815] focus:outline-none focus:border-[#17A673]"
+              />
+              <User className="w-4 h-4 text-[#68716A] absolute left-3 top-3" />
+            </div>
           </div>
 
-          {error && (
-            <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-[#D94C3D] text-xs font-semibold">
-              {error}
+          <div>
+            <label className="block text-xs font-bold text-[#151815] uppercase tracking-wider mb-1">E-Mail-Adresse *</label>
+            <div className="relative">
+              <input
+                type="email"
+                required
+                placeholder="name@beispiel.de"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl pl-9 pr-3 py-2.5 text-xs text-[#151815] focus:outline-none focus:border-[#17A673]"
+              />
+              <Mail className="w-4 h-4 text-[#68716A] absolute left-3 top-3" />
             </div>
-          )}
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#151815] uppercase tracking-wider mb-1">Name & Nachname *</label>
+              <label className="block text-xs font-bold text-[#151815] uppercase tracking-wider mb-1">Passwort *</label>
               <div className="relative">
-                <input
-                  type="text"
-                  required
-                  placeholder="z.B. Maximilian Klein"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl pl-9 pr-3 py-2.5 text-xs text-[#151815] focus:outline-none focus:border-[#17A673]"
-                />
-                <User className="w-4 h-4 text-[#68716A] absolute left-3 top-3" />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[#151815] uppercase tracking-wider mb-1">E-Mail-Adresse *</label>
-              <div className="relative">
-                <input
-                  type="email"
-                  required
-                  placeholder="name@beispiel.de"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl pl-9 pr-3 py-2.5 text-xs text-[#151815] focus:outline-none focus:border-[#17A673]"
-                />
-                <Mail className="w-4 h-4 text-[#68716A] absolute left-3 top-3" />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[#151815] uppercase tracking-wider mb-1">Kontotyp</label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setAccountType('Privat')}
-                  className={`py-2 rounded-lg text-xs font-bold border ${accountType === 'Privat' ? 'bg-[#17A673] text-white border-[#17A673]' : 'bg-[#F6F7F4] text-[#151815] border-[#DEE3DE]'}`}
-                >
-                  Privat
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAccountType('Gewerblich')}
-                  className={`py-2 rounded-lg text-xs font-bold border ${accountType === 'Gewerblich' ? 'bg-[#17A673] text-white border-[#17A673]' : 'bg-[#F6F7F4] text-[#151815] border-[#DEE3DE]'}`}
-                >
-                  Gewerblich
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-bold text-[#151815] uppercase tracking-wider mb-1">Passwort (min. 10 Zeichen) *</label>
                 <input
                   type="password"
                   required
-                  placeholder="••••••••"
+                  placeholder="Min. 10 Zeichen"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl px-3 py-2.5 text-xs text-[#151815] focus:outline-none focus:border-[#17A673]"
+                  className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl pl-9 pr-3 py-2.5 text-xs text-[#151815] focus:outline-none focus:border-[#17A673]"
                 />
+                <Lock className="w-4 h-4 text-[#68716A] absolute left-3 top-3" />
               </div>
-              <div>
-                <label className="block text-xs font-bold text-[#151815] uppercase tracking-wider mb-1">Bestätigen *</label>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-[#151815] uppercase tracking-wider mb-1">Wiederholen *</label>
+              <div className="relative">
                 <input
                   type="password"
                   required
-                  placeholder="••••••••"
+                  placeholder="Wiederholen"
                   value={passwordConfirm}
                   onChange={(e) => setPasswordConfirm(e.target.value)}
-                  className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl px-3 py-2.5 text-xs text-[#151815] focus:outline-none focus:border-[#17A673]"
+                  className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl pl-9 pr-3 py-2.5 text-xs text-[#151815] focus:outline-none focus:border-[#17A673]"
                 />
+                <Lock className="w-4 h-4 text-[#68716A] absolute left-3 top-3" />
               </div>
             </div>
-
-            <div className="flex items-start gap-2 pt-2">
-              <input
-                type="checkbox"
-                id="terms"
-                checked={termsAgreed}
-                onChange={(e) => setTermsAgreed(e.target.checked)}
-                className="mt-0.5"
-              />
-              <label htmlFor="terms" className="text-[11px] text-[#68716A]">
-                Ich stimme den AGB und den Datenschutzbestimmungen von KleinDeal.de zu.
-              </label>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#17A673] hover:bg-[#12835B] text-white font-bold text-xs py-3 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
-            >
-              <span>{loading ? 'Wird registriert...' : 'Kostenlos registrieren'}</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </form>
-
-          <div className="text-center pt-2 text-xs text-[#68716A]">
-            Bereits registriert?{' '}
-            <Link href="/anmelden" className="font-bold text-[#17A673] hover:underline">
-              Hier anmelden
-            </Link>
           </div>
+
+          <div>
+            <label className="block text-xs font-bold text-[#151815] uppercase tracking-wider mb-1">Kontotyp</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setAccountType('Privat')}
+                className={`p-2 rounded-xl border text-xs font-bold transition-all ${
+                  accountType === 'Privat'
+                    ? 'bg-[#E9F7F1] border-[#17A673] text-[#17A673]'
+                    : 'bg-[#F6F7F4] border-[#DEE3DE] text-[#68716A]'
+                }`}
+              >
+                Privater Anbieter
+              </button>
+              <button
+                type="button"
+                onClick={() => setAccountType('Gewerblich')}
+                className={`p-2 rounded-xl border text-xs font-bold transition-all ${
+                  accountType === 'Gewerblich'
+                    ? 'bg-[#E9F7F1] border-[#17A673] text-[#17A673]'
+                    : 'bg-[#F6F7F4] border-[#DEE3DE] text-[#68716A]'
+                }`}
+              >
+                Gewerblicher Anbieter
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-[#151815] uppercase tracking-wider mb-1">Stadt / Ort</label>
+              <input
+                type="text"
+                placeholder="Berlin"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl px-3 py-2.5 text-xs text-[#151815] focus:outline-none focus:border-[#17A673]"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-[#151815] uppercase tracking-wider mb-1">PLZ</label>
+              <input
+                type="text"
+                placeholder="10115"
+                value={plz}
+                onChange={(e) => setPlz(e.target.value)}
+                className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl px-3 py-2.5 text-xs text-[#151815] focus:outline-none focus:border-[#17A673]"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-[#151815] uppercase tracking-wider mb-1">Telefonnummer (Optional)</label>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="+49 176 1234567"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl pl-9 pr-3 py-2.5 text-xs text-[#151815] focus:outline-none focus:border-[#17A673]"
+              />
+              <Phone className="w-4 h-4 text-[#68716A] absolute left-3 top-3" />
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2 pt-2">
+            <input
+              type="checkbox"
+              id="terms"
+              checked={termsAgreed}
+              onChange={(e) => setTermsAgreed(e.target.checked)}
+              className="mt-0.5 accent-[#17A673]"
+            />
+            <label htmlFor="terms" className="text-[11px] text-[#68716A]">
+              Ich stimme den AGB und den Datenschutzbestimmungen von KleinDeal.de zu.
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-[#17A673] hover:bg-[#12835B] text-white font-bold text-xs py-3.5 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
+          >
+            <span>{loading ? 'Wird registriert...' : 'Kostenlos registrieren'}</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </form>
+
+        <div className="text-center pt-2 text-xs text-[#68716A]">
+          Bereits registriert?{' '}
+          <Link 
+            href={redirectTarget ? `/anmelden?redirect=${encodeURIComponent(redirectTarget)}` : '/anmelden'} 
+            className="font-bold text-[#17A673] hover:underline"
+          >
+            Hier anmelden
+          </Link>
         </div>
       </div>
+    </div>
+  );
+}
+
+export default function RegistrierenPage() {
+  return (
+    <main className="min-h-screen bg-[#F6F7F4] pb-20">
+      <Header />
+      <Suspense fallback={<div className="max-w-md mx-auto py-12 text-center text-xs text-[#68716A]">Laden...</div>}>
+        <RegistrierenForm />
+      </Suspense>
     </main>
   );
 }

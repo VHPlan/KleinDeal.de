@@ -37,7 +37,7 @@ export default function VerboteneArtikelPage() {
     <div className="min-h-screen flex flex-col bg-[#F6F7F4] text-[#151815]">
       <Header />
 
-      <main className="flex-1 max-w-4xl mx-auto px-4 py-8 md:py-12 w-full">
+      <main className="flex-1 max-w-5xl mx-auto px-4 py-8 md:py-12 w-full">
         <div className="bg-white border border-[#DEE3DE] rounded-xl p-6 md:p-10 shadow-sm">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-12 h-12 rounded-lg bg-[#E9F7F1] text-[#17A673] flex items-center justify-center">

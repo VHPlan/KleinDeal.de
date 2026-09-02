@@ -114,7 +114,7 @@ export default function AdminDashboardPage() {
     <div className="min-h-screen flex flex-col bg-[#F6F7F4] text-[#151815]">
       <Header />
 
-      <main className="flex-1 max-w-6xl mx-auto px-4 py-8 w-full">
+      <main className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-[#171A17] text-[#17A673] flex items-center justify-center font-bold">

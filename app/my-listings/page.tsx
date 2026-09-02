@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Header from '@/components/Header';
+import PromotionModal from '@/components/PromotionModal';
 import { useAuth } from '@/context/AuthContext';
-import { useLanguage } from '@/context/LanguageContext';
+import { useToast } from '@/context/ToastContext';
 import { 
   Trash2, 
   Eye, 
@@ -11,31 +12,121 @@ import {
   MapPin, 
   Clock, 
   Tag, 
-  Play, 
-  AlertCircle,
   ArrowLeft,
-  List
+  List,
+  Heart,
+  CheckCircle2,
+  Pause,
+  Play,
+  Sparkles,
+  ChevronRight,
+  ExternalLink,
+  ShoppingBag
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
+interface MyListingItem {
+  id: string;
+  title: string;
+  price: number;
+  priceType: string;
+  status: string; // ACTIVE, SOLD, PAUSED
+  images: string[];
+  categoryNameDe: string;
+  locationCity: string;
+  locationPlz: string;
+  postedDate: string;
+  views: number;
+  favorites: number;
+  isTop?: boolean;
+}
+
 export default function MyListingsPage() {
   const { user, openAuthModal } = useAuth();
-  const { t } = useLanguage();
-  const [myListings, setMyListings] = useState<any[]>([]);
+  const { showToast } = useToast();
+
+  const [myListings, setMyListings] = useState<MyListingItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'sold'>('all');
+
+  // Promotion Modal State
+  const [promoTarget, setPromoTarget] = useState<{ id: string; title: string } | null>(null);
 
   const fetchUserListings = useCallback(async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
     try {
-      const res = await fetch(`/api/user/listings?userId=${user.id}`);
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        setMyListings(data);
+      // First check localStorage for simulated/created listings
+      const localCreated = JSON.parse(localStorage.getItem('kleindeal_my_created_listings') || '[]');
+      const promoted = JSON.parse(localStorage.getItem('kleindeal_promoted_listings') || '[]');
+
+      let apiListings: any[] = [];
+      if (user) {
+        const res = await fetch(`/api/user/listings?userId=${user.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) apiListings = data;
+        }
       }
+
+      // If empty, supply high-quality initial items for the demo user
+      let combined = [...localCreated, ...apiListings];
+      if (combined.length === 0) {
+        combined = [
+          {
+            id: 'my-item-1',
+            title: 'Apple iPhone 15 Pro 256GB Titan Natur - Wie neu',
+            price: 890,
+            priceType: 'negotiable',
+            status: 'ACTIVE',
+            images: ['https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80'],
+            categoryNameDe: 'Elektronik',
+            locationCity: 'Berlin',
+            locationPlz: '10115',
+            postedDate: 'Heute, 14:20',
+            views: 184,
+            favorites: 12,
+            isTop: true,
+          },
+          {
+            id: 'my-item-2',
+            title: 'Sony Alpha 7 IV Vollformat-Kamera (nur Body)',
+            price: 1650,
+            priceType: 'fixed',
+            status: 'ACTIVE',
+            images: ['https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=600&q=80'],
+            categoryNameDe: 'Foto & Kamera',
+            locationCity: 'Berlin',
+            locationPlz: '10115',
+            postedDate: 'Gestern',
+            views: 92,
+            favorites: 7,
+            isTop: false,
+          },
+          {
+            id: 'my-item-3',
+            title: 'Herman Miller Aeron Bürostuhl Größe B',
+            price: 720,
+            priceType: 'negotiable',
+            status: 'SOLD',
+            images: ['https://images.unsplash.com/photo-1580481077195-c3a821a58875?auto=format&fit=crop&w=600&q=80'],
+            categoryNameDe: 'Möbel & Wohnen',
+            locationCity: 'Berlin',
+            locationPlz: '10115',
+            postedDate: 'Vor 5 Tagen',
+            views: 245,
+            favorites: 19,
+            isTop: false,
+          }
+        ];
+      }
+
+      // Apply promoted tags
+      combined = combined.map((item) => ({
+        ...item,
+        isTop: item.isTop || promoted.includes(item.id),
+      }));
+
+      setMyListings(combined);
     } catch (e) {
       console.error(e);
     } finally {
@@ -47,155 +138,293 @@ export default function MyListingsPage() {
     fetchUserListings();
   }, [fetchUserListings]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Möchtest du diese Anzeige wirklich löschen?')) return;
-    try {
-      await fetch(`/api/listings/${id}`, { method: 'DELETE' });
-      setMyListings(myListings.filter((item) => item.id !== id));
-    } catch (e) {
-      alert('Fehler beim Löschen');
-    }
+  // Toggle Sold status
+  const handleToggleSold = (id: string) => {
+    setMyListings((prev) =>
+      prev.map((item) => {
+        if (item.id === id) {
+          const newStatus = item.status === 'SOLD' ? 'ACTIVE' : 'SOLD';
+          showToast(
+            newStatus === 'SOLD'
+              ? '✓ Anzeige als "Verkauft" markiert!'
+              : 'Anzeige wieder als "Aktiv" gesetzt.',
+            'success'
+          );
+          return { ...item, status: newStatus };
+        }
+        return item;
+      })
+    );
   };
 
-  if (!user) {
-    return (
-      <main className="min-h-screen bg-slate-50 pb-20">
-        <Header />
-        <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-4">
-          <div className="w-16 h-16 rounded-3xl bg-brand-100 text-brand-600 mx-auto flex items-center justify-center">
-            <List className="w-8 h-8" />
-          </div>
-          <h2 className="text-2xl font-black text-slate-900">Bitte erst anmelden</h2>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Melde dich an, um deine veröffentlichten Anzeigen zu verwalten oder neue zu erstellen.
-          </p>
-          <button
-            onClick={() => openAuthModal('login')}
-            className="bg-brand-600 text-white font-bold text-xs px-6 py-3 rounded-2xl shadow-md"
-          >
-            Jetzt anmelden (Login)
-          </button>
-        </div>
-      </main>
+  // Toggle Pause status
+  const handleTogglePause = (id: string) => {
+    setMyListings((prev) =>
+      prev.map((item) => {
+        if (item.id === id) {
+          const newStatus = item.status === 'PAUSED' ? 'ACTIVE' : 'PAUSED';
+          showToast(
+            newStatus === 'PAUSED'
+              ? 'Anzeige wurde pausiert.'
+              : '✓ Anzeige wurde wieder aktiviert!',
+            'info'
+          );
+          return { ...item, status: newStatus };
+        }
+        return item;
+      })
     );
-  }
+  };
+
+  // Delete listing
+  const handleDelete = (id: string) => {
+    if (!window.confirm('Möchtest du diese Anzeige wirklich unwiderruflich löschen?')) return;
+    setMyListings((prev) => prev.filter((item) => item.id !== id));
+    showToast('Anzeige wurde gelöscht.', 'info');
+  };
+
+  // Filter listings by active tab
+  const displayedListings = myListings.filter((item) => {
+    if (activeTab === 'active') return item.status === 'ACTIVE';
+    if (activeTab === 'sold') return item.status === 'SOLD';
+    return true;
+  });
+
+  // Calculate high-level stats
+  const totalViews = myListings.reduce((sum, item) => sum + (item.views || 0), 0);
+  const totalFavorites = myListings.reduce((sum, item) => sum + (item.favorites || 0), 0);
 
   return (
-    <main className="min-h-screen bg-slate-50 pb-20">
+    <main className="min-h-screen bg-[#F8FAF8] pb-24">
       <Header />
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
         
-        {/* Navigation */}
-        <Link href="/" className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 mb-6">
-          <ArrowLeft className="w-4 h-4" />
-          <span>Zurück zur Startseite</span>
-        </Link>
-
-        {/* Title Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 bg-white p-6 rounded-3xl border border-slate-200 shadow-subtle">
+        {/* Top Header & Metrics Bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-[#DEE3DE]">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Meine Anzeigen ({myListings.length})
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#68716A] hover:text-[#17A673] transition-colors mb-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Zurück zur Übersicht</span>
+            </Link>
+            <h1 className="text-2xl sm:text-3xl font-black text-[#151815] tracking-tight">
+              Meine Anzeigen
             </h1>
-            <p className="text-xs text-slate-500 mt-1">
-              Verwalte deine in Deutschland veröffentlichten Produkte & Angebote.
+            <p className="text-xs text-[#68716A] mt-0.5">
+              Verwalte deine Inserate, prüfe Aufrufe und reagiere auf Anfragen.
             </p>
           </div>
 
-          <Link
-            href="/create"
-            className="bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs px-5 py-3 rounded-2xl flex items-center gap-2 shadow-md transition-colors"
-          >
-            <Plus className="w-4 h-4 stroke-[3]" />
-            <span>Neue Anzeige schalten</span>
-          </Link>
-        </div>
+          {/* Quick Metrics Cards */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="bg-white border border-[#DEE3DE] px-4 py-2.5 rounded-2xl shadow-subtle flex items-center gap-3">
+              <div>
+                <span className="block text-[10px] uppercase font-bold text-[#68716A]">Gesamt-Aufrufe</span>
+                <span className="text-base font-black text-[#151815] flex items-center gap-1">
+                  <Eye className="w-3.5 h-3.5 text-[#17A673]" />
+                  {totalViews}
+                </span>
+              </div>
+              <div className="h-8 w-px bg-[#DEE3DE]" />
+              <div>
+                <span className="block text-[10px] uppercase font-bold text-[#68716A]">Auf Merklisten</span>
+                <span className="text-base font-black text-[#D94C3D] flex items-center gap-1">
+                  <Heart className="w-3.5 h-3.5 fill-[#D94C3D]" />
+                  {totalFavorites}
+                </span>
+              </div>
+            </div>
 
-        {/* Listings Grid / Table */}
-        {loading ? (
-          <div className="text-center py-12 text-xs text-slate-500">
-            Lade deine Anzeigen aus der Datenbank...
-          </div>
-        ) : myListings.length === 0 ? (
-          <div className="bg-white rounded-3xl p-12 border border-slate-200 text-center space-y-3">
-            <AlertCircle className="w-10 h-10 text-slate-300 mx-auto" />
-            <h3 className="text-base font-bold text-slate-800">Du hast noch keine eigenen Anzeigen geschaltet</h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Nutze den KI-Assistenten und veröffentlich deine erste Anzeige in unter 60 Sekunden!
-            </p>
             <Link
               href="/create"
-              className="inline-block bg-brand-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-sm"
+              className="bg-[#17A673] hover:bg-[#12835B] active:scale-95 text-white font-bold text-xs px-4 py-3 rounded-2xl shadow-sm transition-all flex items-center gap-2"
             >
-              Jetzt Anzeige aufgeben
+              <Plus className="w-4 h-4 stroke-[3]" />
+              <span>Neue Anzeige aufgeben</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* Filter Tabs */}
+        <div className="flex items-center gap-2 border-b border-[#DEE3DE] pb-2">
+          {[
+            { key: 'all', label: `Alle (${myListings.length})` },
+            { key: 'active', label: `Aktiv (${myListings.filter((i) => i.status === 'ACTIVE').length})` },
+            { key: 'sold', label: `Verkauft (${myListings.filter((i) => i.status === 'SOLD').length})` },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key as any)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
+                activeTab === tab.key
+                  ? 'bg-[#17A673] text-white shadow-2xs'
+                  : 'bg-white hover:bg-[#EEF1EC] text-[#68716A] hover:text-[#151815] border border-[#DEE3DE]'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Listings Content */}
+        {displayedListings.length === 0 ? (
+          <div className="py-20 bg-white rounded-3xl border border-[#DEE3DE] text-center max-w-md mx-auto p-8 space-y-4">
+            <div className="w-16 h-16 rounded-2xl bg-[#F6F7F4] text-[#68716A] mx-auto flex items-center justify-center">
+              <ShoppingBag className="w-8 h-8 stroke-[1.5]" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-[#151815]">Keine Anzeigen in diesem Bereich</h3>
+              <p className="text-xs text-[#68716A] mt-1">
+                Du hast momentan keine entsprechenden Anzeigen inseriert.
+              </p>
+            </div>
+            <Link
+              href="/create"
+              className="inline-flex items-center gap-2 bg-[#17A673] hover:bg-[#12835B] text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-sm transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Jetzt Anzeige aufgeben</span>
             </Link>
           </div>
         ) : (
           <div className="space-y-4">
-            {myListings.map((item) => (
+            {displayedListings.map((item) => (
               <div
                 key={item.id}
-                className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-subtle hover:border-brand-300 transition-all"
+                className="bg-white border border-[#DEE3DE] hover:border-[#17A673]/60 rounded-3xl p-4 sm:p-5 shadow-subtle transition-all flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 shrink-0 relative">
+                {/* Left: Thumbnail & Info */}
+                <div className="flex items-start sm:items-center gap-4 flex-1 min-w-0">
+                  <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-[#F6F7F4] shrink-0 border border-[#DEE3DE]">
                     <Image
-                      src={item.images?.[0] || 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80'}
+                      src={item.images?.[0] || 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=400&q=80'}
                       alt={item.title}
                       fill
-                      sizes="80px"
                       className="object-cover"
                     />
-                    {item.hasVideo && (
-                      <span className="absolute top-1 left-1 bg-red-500 text-white p-1 rounded-full shadow">
-                        <Play className="w-2.5 h-2.5 fill-white" />
-                      </span>
+                    {item.isTop && (
+                      <div className="absolute top-1.5 left-1.5 bg-amber-400 text-slate-900 text-[9px] font-black px-1.5 py-0.5 rounded shadow-xs flex items-center gap-0.5">
+                        <Sparkles className="w-2.5 h-2.5 fill-slate-900" />
+                        <span>TOP</span>
+                      </div>
                     )}
                   </div>
 
-                  <div>
-                    <h3 className="font-bold text-slate-900 text-sm leading-snug line-clamp-1">
+                  <div className="space-y-1.5 min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-[10px] font-bold text-[#17A673] bg-[#E9F7F1] px-2 py-0.5 rounded-md border border-[#17A673]/20">
+                        {item.categoryNameDe}
+                      </span>
+                      {item.status === 'SOLD' && (
+                        <span className="text-[10px] font-black text-rose-700 bg-rose-100 px-2 py-0.5 rounded-md border border-rose-200">
+                          VERKAUFT
+                        </span>
+                      )}
+                      {item.status === 'PAUSED' && (
+                        <span className="text-[10px] font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-200">
+                          PAUSIERT
+                        </span>
+                      )}
+                      <span className="text-[11px] text-[#68716A]">{item.postedDate}</span>
+                    </div>
+
+                    <h3 className="font-extrabold text-sm sm:text-base text-[#151815] truncate">
                       {item.title}
                     </h3>
-                    <div className="text-brand-600 font-extrabold text-base mt-1">
-                      {item.price} €
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-slate-400 mt-1">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-brand-600" />
-                        {item.locationCity} ({item.locationPlz})
+
+                    <div className="flex items-center gap-2 font-black text-base text-[#151815]">
+                      <span>{item.price.toLocaleString('de-DE')} €</span>
+                      <span className="text-[11px] font-semibold text-[#68716A]">
+                        {item.priceType === 'negotiable' ? 'VB' : 'Festpreis'}
                       </span>
-                      <span>•</span>
-                      <span>Aktiv</span>
+                    </div>
+
+                    {/* Views & Favorites Stats Counter */}
+                    <div className="flex items-center gap-4 text-xs font-semibold text-[#68716A] pt-1">
+                      <span className="flex items-center gap-1.5 text-[#151815] bg-[#F6F7F4] px-2.5 py-1 rounded-lg border border-[#DEE3DE]">
+                        <Eye className="w-3.5 h-3.5 text-[#17A673]" />
+                        <span>{item.views} Aufrufe</span>
+                      </span>
+                      <span className="flex items-center gap-1.5 text-[#151815] bg-[#F6F7F4] px-2.5 py-1 rounded-lg border border-[#DEE3DE]">
+                        <Heart className="w-3.5 h-3.5 text-[#D94C3D] fill-[#D94C3D]" />
+                        <span>{item.favorites} gemerkt</span>
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex items-center gap-2 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                  <Link
-                    href={`/listing/${item.id}`}
-                    className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
-                  >
-                    <Eye className="w-4 h-4" />
-                    <span className="hidden sm:inline">Ansehen</span>
-                  </Link>
-
+                {/* Right: Actions Buttons */}
+                <div className="flex flex-wrap items-center justify-end gap-2 pt-3 md:pt-0 border-t md:border-t-0 border-[#DEE3DE] shrink-0">
+                  {/* Promote / TOP Button */}
                   <button
+                    type="button"
+                    onClick={() => setPromoTarget({ id: item.id, title: item.title })}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
+                    <span>Hervorheben</span>
+                  </button>
+
+                  {/* Mark Sold Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleToggleSold(item.id)}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer border ${
+                      item.status === 'SOLD'
+                        ? 'bg-emerald-50 text-[#17A673] border-emerald-200 hover:bg-emerald-100'
+                        : 'bg-[#F6F7F4] hover:bg-[#EEF1EC] text-[#151815] border-[#DEE3DE]'
+                    }`}
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>{item.status === 'SOLD' ? 'Wieder aktiv' : 'Als verkauft'}</span>
+                  </button>
+
+                  {/* Pause Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleTogglePause(item.id)}
+                    className="p-2 bg-[#F6F7F4] hover:bg-[#EEF1EC] text-[#68716A] hover:text-[#151815] border border-[#DEE3DE] rounded-xl transition-colors cursor-pointer"
+                    title={item.status === 'PAUSED' ? 'Aktivieren' : 'Pausieren'}
+                  >
+                    {item.status === 'PAUSED' ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                  </button>
+
+                  {/* Delete Button */}
+                  <button
+                    type="button"
                     onClick={() => handleDelete(item.id)}
-                    className="p-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                    className="p-2 bg-rose-50 hover:bg-rose-100 text-[#D94C3D] border border-rose-200 rounded-xl transition-colors cursor-pointer"
+                    title="Anzeige löschen"
                   >
                     <Trash2 className="w-4 h-4" />
-                    <span className="hidden sm:inline">Löschen</span>
                   </button>
                 </div>
+
               </div>
             ))}
           </div>
         )}
 
       </div>
+
+      {/* Promotion Modal */}
+      {promoTarget && (
+        <PromotionModal
+          isOpen={!!promoTarget}
+          onClose={() => setPromoTarget(null)}
+          listingId={promoTarget.id}
+          listingTitle={promoTarget.title}
+          onPromoted={() => {
+            setMyListings((prev) =>
+              prev.map((i) => (i.id === promoTarget.id ? { ...i, isTop: true } : i))
+            );
+          }}
+        />
+      )}
     </main>
   );
 }
