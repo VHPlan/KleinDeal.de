@@ -68,6 +68,27 @@ export default function HomePage() {
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [locationQuery, setLocationQuery] = useState('');
+
+  // Restore saved location if available
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('kleindeal_location');
+      if (saved && !locationQuery) {
+        setLocationQuery(saved);
+      }
+    } catch {}
+  }, []);
+
+  const handleUpdateLocation = (newLoc: string) => {
+    setLocationQuery(newLoc);
+    try {
+      if (newLoc) {
+        localStorage.setItem('kleindeal_location', newLoc);
+      } else {
+        localStorage.removeItem('kleindeal_location');
+      }
+    } catch {}
+  };
   const [conditionFilter, setConditionFilter] = useState<string>('all');
   const [radiusFilter, setRadiusFilter] = useState<string>('all');
   const [minPrice, setMinPrice] = useState('');
@@ -109,8 +130,8 @@ export default function HomePage() {
             if (data.success && data.result) {
               const detectedCity = data.result.city || data.result.name;
               const detectedPlz = data.result.plz;
-              const loc = detectedCity || detectedPlz || 'Deutschland';
-              setLocationQuery(loc);
+              const loc = detectedPlz ? `${detectedCity} (${detectedPlz})` : (detectedCity || 'Karlsruhe (76139)');
+              handleUpdateLocation(loc);
               showToast(`📍 Standort erkannt: ${data.result.full || loc}. Zeige Angebote aus deiner Region!`, 'success');
             } else {
               showToast('Standort konnte nicht genau ermittelt werden.', 'info');
@@ -375,7 +396,7 @@ export default function HomePage() {
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
               locationQuery={locationQuery}
-              setLocationQuery={setLocationQuery}
+              setLocationQuery={handleUpdateLocation}
               selectedCategory={selectedCategory}
               setSelectedCategory={setSelectedCategory}
               listings={filteredListings}

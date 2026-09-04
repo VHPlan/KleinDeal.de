@@ -13,12 +13,12 @@ interface LocationAutocompleteProps {
 }
 
 const POPULAR_CITIES = [
+  { name: 'Karlsruhe', plz: '76139' },
   { name: 'Berlin', plz: '10115' },
   { name: 'München', plz: '80331' },
   { name: 'Hamburg', plz: '20095' },
   { name: 'Köln', plz: '50667' },
   { name: 'Frankfurt am Main', plz: '60311' },
-  { name: 'Karlsruhe', plz: '76131' },
   { name: 'Stuttgart', plz: '70173' },
   { name: 'Düsseldorf', plz: '40213' },
 ];

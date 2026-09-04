@@ -178,25 +178,115 @@ export async function GET(req: Request) {
       return NextResponse.json({ results: [] });
     }
 
-    const cleanQ = q.toLowerCase();
+    const cleanQ = q.toLowerCase().trim();
+    const isPostalCode = /^\d{3,5}$/.test(cleanQ);
 
-    // 1. Query Photon geocoding API for live real-time places across all of Germany
+    let plzMatches: any[] = [];
     let remoteMatches: any[] = [];
+
+    // 1. Direct High-Speed PLZ Resolver for German Postcodes (e.g. 76139, 10115, 80331)
+    if (isPostalCode) {
+      try {
+        const zipRes = await fetch(`https://api.zippopotam.us/de/${cleanQ}`, {
+          signal: AbortSignal.timeout(3000),
+          cache: 'no-store',
+        });
+        if (zipRes.ok) {
+          const zipData = await zipRes.json();
+          if (Array.isArray(zipData.places)) {
+            plzMatches = zipData.places.map((p: any) => {
+              const city = p['place name'] || 'Karlsruhe';
+              const state = p['state'] || '';
+              const plz = zipData['post code'] || cleanQ;
+              const full = `${city} (${plz})`;
+              return {
+                city,
+                plz,
+                state,
+                primary: full,
+                secondary: [state, 'Deutschland'].filter(Boolean).join(', '),
+                full,
+              };
+            });
+          }
+        }
+      } catch (e: any) {
+        console.warn('PLZ lookup notice:', e?.message);
+      }
+    }
+
+    // 2. OpenStreetMap Nominatim Search (High precision for German cities, PLZ, and districts)
+    try {
+      const nomSearchRes = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&countrycodes=de&format=jsonv2&addressdetails=1&limit=6`,
+        {
+          headers: {
+            'User-Agent': 'KleinDeal-Marketplace/1.0 (contact@kleindeal.de)',
+            'Accept': 'application/json',
+            'Accept-Language': 'de, en;q=0.8',
+          },
+          signal: AbortSignal.timeout(4000),
+          cache: 'no-store',
+        }
+      );
+      if (nomSearchRes.ok) {
+        const nomSearchData = await nomSearchRes.json();
+        if (Array.isArray(nomSearchData)) {
+          const parsedNom = nomSearchData.map((item: any) => {
+            const addr = item.address || {};
+            const city =
+              addr.city ||
+              addr.town ||
+              addr.village ||
+              addr.municipality ||
+              addr.suburb ||
+              addr.city_district ||
+              addr.county ||
+              item.name ||
+              q;
+            const plz = addr.postcode || '';
+            const state = addr.state || '';
+            const district = addr.suburb || addr.city_district || addr.neighbourhood || '';
+
+            let primary = city;
+            if (district && district !== city) {
+              primary = `${city} (${district})`;
+            } else if (plz) {
+              primary = `${city} (${plz})`;
+            }
+
+            return {
+              city,
+              plz,
+              state,
+              primary,
+              secondary: [state, 'Deutschland'].filter(Boolean).join(', '),
+              full: plz ? `${city} (${plz})` : city,
+            };
+          });
+          remoteMatches = [...remoteMatches, ...parsedNom];
+        }
+      }
+    } catch (nomErr: any) {
+      console.warn('Nominatim search notice:', nomErr?.message);
+    }
+
+    // 3. Query Photon geocoding API for live real-time places across all of Germany
     try {
       const photonRes = await fetch(
-        `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=8&countrycodes=de&lang=de`,
-        { headers, cache: 'no-store' }
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=6&countrycodes=de&lang=de`,
+        { headers, cache: 'no-store', signal: AbortSignal.timeout(3000) }
       );
       if (photonRes.ok) {
         const photonData = await photonRes.json();
         if (Array.isArray(photonData.features)) {
-          remoteMatches = photonData.features.map((f: any) => {
+          const parsedPhoton = photonData.features.map((f: any) => {
             const p = f.properties || {};
             const city = p.city || p.town || p.village || p.county || p.name || q;
             const plz = p.postcode || '';
             const state = p.state || '';
             const district = p.district || p.suburb || '';
-            
+
             let primary = city;
             if (district && district !== city) {
               primary = `${city} (${district})`;
@@ -215,13 +305,14 @@ export async function GET(req: Request) {
               full: plz ? `${city} (${plz})` : city,
             };
           });
+          remoteMatches = [...remoteMatches, ...parsedPhoton];
         }
       }
     } catch (e) {
       console.warn('Photon API fetch fallback:', e);
     }
 
-    // 2. Check local top German cities dataset for immediate instant matches (prefix matches prioritized)
+    // 4. Check local top German cities dataset for immediate instant matches
     const localMatches = TOP_GERMAN_CITIES.filter(
       (c) =>
         c.city.toLowerCase().startsWith(cleanQ) ||
@@ -237,7 +328,7 @@ export async function GET(req: Request) {
     }));
 
     // Deduplicate results based on city and plz
-    const combined = [...localMatches, ...remoteMatches];
+    const combined = [...plzMatches, ...localMatches, ...remoteMatches];
     const seen = new Set<string>();
     const deduplicated = [];
 
