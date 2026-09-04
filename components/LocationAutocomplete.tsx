@@ -127,7 +127,7 @@ export default function LocationAutocomplete({
           setLocateError('Standort konnte nicht ermittelt werden.');
         }
       },
-      { timeout: 10000, enableHighAccuracy: false }
+      { timeout: 15000, enableHighAccuracy: true, maximumAge: 0 }
     );
   };
 

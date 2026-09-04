@@ -37,12 +37,110 @@ export async function GET(req: Request) {
       'Accept': 'application/json',
     };
 
-    // Handle Reverse Geocoding (Meinen Standort verwenden)
+    // Handle Precise Reverse Geocoding (Meinen Standort verwenden)
     if (lat && lon) {
+      const parsedLat = parseFloat(lat);
+      const parsedLon = parseFloat(lon);
+
+      if (isNaN(parsedLat) || isNaN(parsedLon)) {
+        return NextResponse.json({ success: false, message: 'Invalid coordinates' }, { status: 400 });
+      }
+
+      // 1. First choice: OpenStreetMap Nominatim for exact address resolution
+      try {
+        const nomRes = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${parsedLat}&lon=${parsedLon}&zoom=18&addressdetails=1`,
+          {
+            headers: {
+              'User-Agent': 'KleinDeal-Marketplace/1.0 (contact@kleindeal.de)',
+              'Accept': 'application/json',
+              'Accept-Language': 'de, en;q=0.8',
+            },
+            signal: AbortSignal.timeout(4500),
+            cache: 'no-store',
+          }
+        );
+        if (nomRes.ok) {
+          const nomData = await nomRes.json();
+          const addr = nomData.address || {};
+          const city =
+            addr.city ||
+            addr.town ||
+            addr.village ||
+            addr.municipality ||
+            addr.suburb ||
+            addr.city_district ||
+            addr.county ||
+            addr.state_district ||
+            nomData.name;
+          const plz = addr.postcode || '';
+          const state = addr.state || '';
+          const country = addr.country || 'Deutschland';
+
+          if (city) {
+            const full = plz ? `${city} (${plz})` : city;
+            const secondary = [state, country].filter(Boolean).join(', ');
+            return NextResponse.json({
+              success: true,
+              result: {
+                city,
+                plz,
+                state,
+                country,
+                primary: full,
+                secondary,
+                full,
+                lat: parsedLat,
+                lon: parsedLon,
+              },
+            });
+          }
+        }
+      } catch (nomErr: any) {
+        console.warn('Nominatim reverse lookup notice:', nomErr?.message);
+      }
+
+      // 2. Second choice: BigDataCloud Reverse Geocoding API (Fast and highly accurate global client)
+      try {
+        const bdcRes = await fetch(
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${parsedLat}&longitude=${parsedLon}&localityLanguage=de`,
+          { signal: AbortSignal.timeout(4000), cache: 'no-store' }
+        );
+        if (bdcRes.ok) {
+          const bdc = await bdcRes.json();
+          const city = bdc.city || bdc.locality || bdc.principalSubdivision || '';
+          const plz = bdc.postcode || '';
+          const state = bdc.principalSubdivision || '';
+          const country = bdc.countryName || 'Deutschland';
+
+          if (city) {
+            const full = plz ? `${city} (${plz})` : city;
+            const secondary = [state, country].filter(Boolean).join(', ');
+            return NextResponse.json({
+              success: true,
+              result: {
+                city,
+                plz,
+                state,
+                country,
+                primary: full,
+                secondary,
+                full,
+                lat: parsedLat,
+                lon: parsedLon,
+              },
+            });
+          }
+        }
+      } catch (bdcErr: any) {
+        console.warn('BigDataCloud reverse lookup notice:', bdcErr?.message);
+      }
+
+      // 3. Fallback: Photon Komoot API
       try {
         const revRes = await fetch(
-          `https://photon.komoot.io/reverse?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`,
-          { headers, cache: 'no-store' }
+          `https://photon.komoot.io/reverse?lat=${parsedLat}&lon=${parsedLon}`,
+          { headers, cache: 'no-store', signal: AbortSignal.timeout(4000) }
         );
         if (revRes.ok) {
           const revData = await revRes.json();
@@ -51,6 +149,7 @@ export async function GET(req: Request) {
             const city = first.city || first.town || first.village || first.county || first.name || 'Mein Standort';
             const plz = first.postcode || '';
             const state = first.state || '';
+            const country = first.country || 'Deutschland';
             const full = plz ? `${city} (${plz})` : city;
             return NextResponse.json({
               success: true,
@@ -58,16 +157,20 @@ export async function GET(req: Request) {
                 city,
                 plz,
                 state,
+                country,
                 primary: full,
-                secondary: [state, 'Deutschland'].filter(Boolean).join(', '),
+                secondary: [state, country].filter(Boolean).join(', '),
                 full,
+                lat: parsedLat,
+                lon: parsedLon,
               },
             });
           }
         }
-      } catch (e) {
-        console.error('Error in reverse geocoding:', e);
+      } catch (e: any) {
+        console.error('Error in reverse geocoding fallback:', e?.message);
       }
+
       return NextResponse.json({ success: false, message: 'Could not reverse geocode' });
     }
 
