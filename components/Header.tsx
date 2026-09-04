@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
@@ -21,7 +21,8 @@ import {
   MessageSquare,
   Heart,
   Settings,
-  ShieldCheck
+  ShieldCheck,
+  Activity
 } from 'lucide-react';
 
 import { useRouter } from 'next/navigation';
@@ -38,6 +39,29 @@ export default function Header({ onSearchChange }: HeaderProps) {
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const [adminOnlineCount, setAdminOnlineCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (user?.role === 'ADMIN') {
+      const fetchPresence = async () => {
+        try {
+          const res = await fetch('/api/presence');
+          if (res.ok) {
+            const data = await res.json();
+            if (typeof data?.onlineCount === 'number') {
+              setAdminOnlineCount(data.onlineCount);
+            }
+          }
+        } catch (_) {}
+      };
+
+      fetchPresence();
+      const interval = setInterval(fetchPresence, 15000);
+      return () => clearInterval(interval);
+    } else {
+      setAdminOnlineCount(null);
+    }
+  }, [user]);
 
   const handleCreateAdClick = (e: React.MouseEvent) => {
     if (!user) {
@@ -81,6 +105,21 @@ export default function Header({ onSearchChange }: HeaderProps) {
 
             {/* Right Side Actions */}
             <div className="flex items-center gap-1.5 sm:gap-2.5">
+
+              {/* Admin-Only Live Visitors Indicator */}
+              {user?.role === 'ADMIN' && adminOnlineCount !== null && (
+                <Link
+                  href="/admin"
+                  title="Admin Dashboard & Live Traffic"
+                  className="hidden md:flex items-center gap-1.5 bg-[#E9F7F1] hover:bg-[#d5f3e6] border border-[#17A673]/30 text-[#17A673] px-2.5 py-1 rounded-xl text-xs font-bold transition-all shadow-2xs group"
+                >
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#17A673] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#17A673]"></span>
+                  </span>
+                  <span>{adminOnlineCount} online</span>
+                </Link>
+              )}
 
               {/* Favorites Quick Link */}
               <Link

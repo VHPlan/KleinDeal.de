@@ -48,6 +48,21 @@ interface AdminUser {
   };
 }
 
+interface PresenceStats {
+  onlineCount: number;
+  authenticatedCount: number;
+  guestsCount: number;
+  peakToday: number;
+  pageBreakdown: Record<string, number>;
+  onlineUsers: Array<{
+    userId?: string;
+    name?: string;
+    role?: string;
+    page: string;
+    lastSeen: number;
+  }>;
+}
+
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<'users' | 'reports' | 'actions' | 'appeals'>('users');
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -57,6 +72,23 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [feedback, setFeedback] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [presenceStats, setPresenceStats] = useState<PresenceStats | null>(null);
+
+  const loadPresence = useCallback(async () => {
+    try {
+      const res = await fetch('/api/presence');
+      if (res.ok) {
+        const data = await res.json();
+        setPresenceStats(data);
+      }
+    } catch (_) {}
+  }, []);
+
+  useEffect(() => {
+    loadPresence();
+    const interval = setInterval(loadPresence, 10000);
+    return () => clearInterval(interval);
+  }, [loadPresence]);
 
   // User filters
   const [userSearch, setUserSearch] = useState('');
@@ -271,6 +303,91 @@ export default function AdminDashboardPage() {
             <span>{feedback.text}</span>
           </div>
         )}
+
+        {/* Live Online Presence & Traffic Widget (Admin Only) */}
+        <div className="bg-white border border-[#DEE3DE] rounded-2xl p-5 sm:p-6 mb-8 shadow-subtle">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#DEE3DE] mb-5">
+            <div className="flex items-center gap-2.5">
+              <div className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#17A673] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-[#17A673]"></span>
+              </div>
+              <h2 className="text-base font-extrabold text-[#151815] tracking-tight">
+                Live Besucher & Echtzeit-Traffic
+              </h2>
+              <span className="text-[10px] font-bold bg-[#E9F7F1] text-[#17A673] px-2 py-0.5 rounded-md border border-[#17A673]/20">
+                Echtzeit-Tracking (60s)
+              </span>
+            </div>
+            <div className="text-[11px] text-[#68716A] font-medium flex items-center gap-2">
+              <span>Automatische Aktualisierung alle 10s</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+            {/* Metric 1: Live Online */}
+            <div className="bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl p-4 flex flex-col justify-between">
+              <span className="text-[11px] font-bold text-[#68716A] uppercase tracking-wider">Aktuell Online</span>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="text-2xl sm:text-3xl font-black text-[#17A673]">
+                  {presenceStats?.onlineCount ?? 1}
+                </span>
+                <span className="text-xs font-semibold text-[#68716A]">Besucher</span>
+              </div>
+            </div>
+
+            {/* Metric 2: Authenticated */}
+            <div className="bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl p-4 flex flex-col justify-between">
+              <span className="text-[11px] font-bold text-[#68716A] uppercase tracking-wider">Eingeloggt</span>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="text-2xl sm:text-3xl font-black text-[#151815]">
+                  {presenceStats?.authenticatedCount ?? 0}
+                </span>
+                <span className="text-xs font-semibold text-[#68716A]">Mitglieder</span>
+              </div>
+            </div>
+
+            {/* Metric 3: Guests */}
+            <div className="bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl p-4 flex flex-col justify-between">
+              <span className="text-[11px] font-bold text-[#68716A] uppercase tracking-wider">Gäste</span>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="text-2xl sm:text-3xl font-black text-[#151815]">
+                  {presenceStats?.guestsCount ?? 0}
+                </span>
+                <span className="text-xs font-semibold text-[#68716A]">Anonym</span>
+              </div>
+            </div>
+
+            {/* Metric 4: Peak Today */}
+            <div className="bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl p-4 flex flex-col justify-between">
+              <span className="text-[11px] font-bold text-[#68716A] uppercase tracking-wider">Spitze heute</span>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="text-2xl sm:text-3xl font-black text-amber-600">
+                  {presenceStats?.peakToday ?? 1}
+                </span>
+                <span className="text-xs font-semibold text-[#68716A]">Gleichzeitig</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Active Pages Breakdown */}
+          {presenceStats && Object.keys(presenceStats.pageBreakdown || {}).length > 0 && (
+            <div className="mt-4 pt-4 border-t border-[#DEE3DE] flex flex-wrap items-center gap-2 text-xs">
+              <span className="font-bold text-[#68716A] text-[11px]">Aktive Seiten:</span>
+              {Object.entries(presenceStats.pageBreakdown).map(([pagePath, count]) => (
+                <span
+                  key={pagePath}
+                  className="bg-white border border-[#DEE3DE] text-[#151815] px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+                >
+                  <span className="font-mono text-[#17A673]">{pagePath}</span>
+                  <span className="bg-[#E9F7F1] text-[#17A673] text-[10px] font-extrabold px-1.5 py-0.2 rounded">
+                    {count}
+                  </span>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Tab Selector */}
         <div className="flex border-b border-[#DEE3DE] mb-6 gap-2 overflow-x-auto">

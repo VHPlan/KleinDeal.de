@@ -9,6 +9,7 @@ import { FavoritesProvider } from '@/context/FavoritesContext';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import Footer from '@/components/Footer';
 import CookieConsent from '@/components/CookieConsent';
+import PresenceTracker from '@/components/PresenceTracker';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -56,6 +57,7 @@ export default function RootLayout({
     <html lang="de" className={inter.variable}>
       <body className={`min-h-screen bg-white flex flex-col antialiased selection:bg-[#17A673] selection:text-white font-sans text-[#151815] ${inter.className}`}>
         <AuthProvider>
+          <PresenceTracker />
           <LanguageProvider>
             <ToastProvider>
               <FavoritesProvider>
