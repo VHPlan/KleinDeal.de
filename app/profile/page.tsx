@@ -30,12 +30,20 @@ import {
   X,
   Bell,
   Eye,
-  EyeOff
+  EyeOff,
+  Plus,
+  ExternalLink,
+  Tag,
+  Loader2,
+  Clock
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { useFavorites } from '@/context/FavoritesContext';
 
 export default function ProfilePage() {
   const { user, logout, openAuthModal, login } = useAuth();
+  const { savedListings, favoritesCount, removeFavorite } = useFavorites();
   const { t } = useLanguage();
 
   const [activeTab, setActiveTab] = useState<
@@ -62,6 +70,8 @@ export default function ProfilePage() {
   const [savedSearches, setSavedSearches] = useState<any[]>([]);
   const [followingUsers, setFollowingUsers] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [userListings, setUserListings] = useState<any[]>([]);
+  const [conversations, setConversations] = useState<any[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
   const [securityEvents, setSecurityEvents] = useState<any[]>([]);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
@@ -74,6 +84,7 @@ export default function ProfilePage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [tabLoading, setTabLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -114,6 +125,7 @@ export default function ProfilePage() {
 
   const loadTabData = async (tab: string) => {
     try {
+      setTabLoading(true);
       if (tab === 'saved_searches') {
         const res = await fetch('/api/saved-searches');
         if (res.ok) setSavedSearches(await res.json());
@@ -123,6 +135,20 @@ export default function ProfilePage() {
       } else if (tab === 'transactions') {
         const res = await fetch('/api/transactions');
         if (res.ok) setTransactions(await res.json());
+      } else if (tab === 'listings') {
+        const res = await fetch('/api/user/listings');
+        let apiListings = [];
+        if (res.ok) apiListings = await res.json();
+        let localCreated: any[] = [];
+        if (typeof window !== 'undefined') {
+          localCreated = JSON.parse(localStorage.getItem('kleindeal_my_created_listings') || '[]');
+        }
+        const combined = [...localCreated, ...apiListings];
+        const unique = Array.from(new Map(combined.map(item => [item.id, item])).values());
+        setUserListings(unique);
+      } else if (tab === 'messages') {
+        const res = await fetch('/api/conversations');
+        if (res.ok) setConversations(await res.json());
       } else if (tab === 'security') {
         const resSess = await fetch('/api/security/sessions');
         if (resSess.ok) setSessions(await resSess.json());
@@ -136,6 +162,8 @@ export default function ProfilePage() {
       }
     } catch (err) {
       console.error('Error loading tab data:', err);
+    } finally {
+      setTabLoading(false);
     }
   };
 
@@ -653,20 +681,321 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* TAB: MY LISTINGS LINK */}
+        {/* TAB: MEINE ANZEIGEN (LISTINGS) */}
         {activeTab === 'listings' && (
-          <div className="bg-white border border-[#DEE3DE] rounded-xl p-8 shadow-subtle text-center space-y-4">
-            <List className="w-8 h-8 text-[#17A673] mx-auto" />
-            <h3 className="text-lg font-bold text-[#151815]">Meine Anzeigen verwalten</h3>
-            <p className="text-xs text-[#68716A] max-w-sm mx-auto">
-              Aktivieren, Bearbeiten, Statistiken ansehen und als Verkauft markieren.
-            </p>
-            <Link
-              href="/my-listings"
-              className="inline-block bg-[#17A673] hover:bg-[#12835B] text-white font-bold text-xs px-6 py-3 rounded-lg"
-            >
-              Zu meinen Anzeigen →
-            </Link>
+          <div className="bg-white border border-[#DEE3DE] rounded-xl p-6 shadow-subtle space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#DEE3DE] pb-4">
+              <div>
+                <h3 className="text-base font-bold text-[#151815]">Meine Anzeigen</h3>
+                <p className="text-xs text-[#68716A]">Verwalte deine geschalteten Inserate, Status und Statistiken.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/create"
+                  className="bg-[#17A673] hover:bg-[#12835B] text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-2xs flex items-center gap-1.5 transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Anzeige aufgeben</span>
+                </Link>
+                <Link
+                  href="/my-listings"
+                  className="bg-[#F6F7F4] hover:bg-[#DEE3DE]/50 text-[#151815] text-xs font-bold px-4 py-2.5 rounded-xl border border-[#DEE3DE] flex items-center gap-1.5 transition-colors"
+                >
+                  <span>Erweiterte Verwaltung</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+
+            {tabLoading ? (
+              <div className="text-center py-12 flex flex-col items-center justify-center text-xs text-[#68716A] font-semibold gap-2">
+                <Loader2 className="w-6 h-6 animate-spin text-[#17A673]" />
+                <span>Lade deine Anzeigen...</span>
+              </div>
+            ) : userListings.length === 0 ? (
+              <div className="text-center py-12 space-y-3">
+                <div className="w-14 h-14 rounded-2xl bg-[#E9F7F1] text-[#17A673] flex items-center justify-center mx-auto">
+                  <List className="w-7 h-7" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-bold text-sm text-[#151815]">Noch keine Anzeigen geschaltet</h4>
+                  <p className="text-xs text-[#68716A] max-w-sm mx-auto">
+                    Verkaufe jetzt einfach und schnell Artikel lokal in ganz Deutschland.
+                  </p>
+                </div>
+                <Link
+                  href="/create"
+                  className="inline-flex items-center gap-1.5 bg-[#17A673] hover:bg-[#12835B] text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-2xs transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Jetzt kostenlos inserieren</span>
+                </Link>
+              </div>
+            ) : (
+              <div className="divide-y divide-[#DEE3DE]">
+                {userListings.map((item) => {
+                  const imageSrc = (item.images && item.images[0]) || '/images/placeholder.svg';
+                  return (
+                    <div key={item.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex items-center gap-3.5">
+                        <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-[#F6F7F4] border border-[#DEE3DE] shrink-0">
+                          <Image
+                            src={imageSrc}
+                            alt={item.title || 'Anzeige'}
+                            fill
+                            className="object-cover"
+                            unoptimized={imageSrc.startsWith('data:') || imageSrc.startsWith('blob:')}
+                          />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
+                              item.status === 'ACTIVE' || !item.status
+                                ? 'bg-[#E9F7F1] text-[#17A673] border-[#17A673]/30'
+                                : item.status === 'SOLD'
+                                ? 'bg-amber-50 text-amber-800 border-amber-200'
+                                : 'bg-gray-100 text-gray-700 border-gray-200'
+                            }`}>
+                              {item.status === 'SOLD' ? 'Verkauft' : item.status === 'PAUSED' ? 'Pausiert' : 'Aktiv'}
+                            </span>
+                            <span className="font-extrabold text-sm text-[#17A673]">
+                              {item.price !== undefined ? `${item.price} €` : 'VB'}
+                            </span>
+                          </div>
+                          <Link href={`/listing/${item.id}`} className="font-bold text-sm text-[#151815] hover:text-[#17A673] transition-colors line-clamp-1">
+                            {item.title}
+                          </Link>
+                          <div className="text-[11px] text-[#68716A] flex items-center gap-2 mt-0.5">
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3 text-[#17A673]" />
+                              {item.locationCity || 'Deutschland'}
+                            </span>
+                            <span>•</span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {item.postedDate || 'Kürzlich'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-end sm:self-center">
+                        <Link
+                          href={`/listing/${item.id}`}
+                          className="px-3.5 py-1.5 bg-[#F6F7F4] hover:bg-[#DEE3DE]/50 text-xs font-bold text-[#151815] rounded-xl border border-[#DEE3DE] transition-colors"
+                        >
+                          Ansehen
+                        </Link>
+                        <Link
+                          href={`/my-listings`}
+                          className="px-3.5 py-1.5 bg-[#E9F7F1] hover:bg-[#17A673] text-[#17A673] hover:text-white text-xs font-bold rounded-xl border border-[#17A673]/30 transition-all"
+                        >
+                          Verwalten
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB: FAVORITEN (MERKLISTE) */}
+        {activeTab === 'favorites' && (
+          <div className="bg-white border border-[#DEE3DE] rounded-xl p-6 shadow-subtle space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#DEE3DE] pb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-bold text-[#151815]">Merkliste / Favoriten</h3>
+                  {savedListings.length > 0 && (
+                    <span className="text-xs font-bold bg-[#E9F7F1] text-[#17A673] px-2.5 py-0.5 rounded-full border border-[#17A673]/20">
+                      {savedListings.length} {savedListings.length === 1 ? 'Anzeige' : 'Anzeigen'}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-[#68716A]">Alle Angebote, die du für später gespeichert hast.</p>
+              </div>
+              {savedListings.length > 0 && (
+                <Link
+                  href="/favorites"
+                  className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#F6F7F4] hover:bg-[#DEE3DE]/50 border border-[#DEE3DE] text-xs font-bold rounded-xl text-[#151815] transition-colors shadow-2xs"
+                >
+                  <span>Zur Vollbild-Merkliste</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </Link>
+              )}
+            </div>
+
+            {savedListings.length === 0 ? (
+              <div className="text-center py-14 space-y-3">
+                <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center mx-auto">
+                  <Heart className="w-7 h-7" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-bold text-sm text-[#151815]">Deine Merkliste ist noch leer</h4>
+                  <p className="text-xs text-[#68716A] max-w-sm mx-auto">
+                    Klicke auf das Herz-Symbol bei beliebigen Anzeigen, um sie hier schnell wiederzufinden.
+                  </p>
+                </div>
+                <Link
+                  href="/"
+                  className="inline-flex items-center gap-1.5 bg-[#17A673] hover:bg-[#12835B] text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-2xs transition-colors"
+                >
+                  <span>Jetzt Anzeigen entdecken</span>
+                  <ArrowLeft className="w-4 h-4 rotate-180" />
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {savedListings.map((item) => {
+                  const imageSrc = (item.images && item.images[0]) || '/images/placeholder.svg';
+                  return (
+                    <div
+                      key={item.id}
+                      className="group bg-white border border-[#DEE3DE] hover:border-[#17A673]/50 rounded-2xl overflow-hidden shadow-2xs hover:shadow-subtle transition-all flex flex-col justify-between"
+                    >
+                      <div>
+                        {/* Thumbnail & Remove button */}
+                        <div className="relative aspect-[4/3] w-full bg-[#F6F7F4] overflow-hidden">
+                          <Image
+                            src={imageSrc}
+                            alt={item.title || 'Anzeige'}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            unoptimized={imageSrc.startsWith('data:') || imageSrc.startsWith('blob:')}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeFavorite(item.id)}
+                            className="absolute top-2.5 right-2.5 p-2 rounded-xl bg-white/90 hover:bg-rose-50 text-[#D94C3D] shadow-sm backdrop-blur-xs transition-colors cursor-pointer"
+                            title="Aus Favoriten entfernen"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                          {item.categoryNameDe && (
+                            <span className="absolute bottom-2.5 left-2.5 bg-black/60 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
+                              {item.categoryNameDe}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-4 space-y-1.5">
+                          <div className="text-base font-extrabold text-[#17A673]">
+                            {item.price !== undefined ? `${item.price} €` : 'VB'}
+                          </div>
+                          <Link
+                            href={`/listing/${item.id}`}
+                            className="block font-bold text-sm text-[#151815] group-hover:text-[#17A673] transition-colors line-clamp-2"
+                          >
+                            {item.title}
+                          </Link>
+                          <div className="text-[11px] text-[#68716A] flex items-center gap-1.5 pt-1">
+                            <MapPin className="w-3 h-3 text-[#17A673]" />
+                            <span>{item.locationCity || 'Deutschland'} {item.locationPlz ? `(${item.locationPlz})` : ''}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-4 pt-0">
+                        <Link
+                          href={`/listing/${item.id}`}
+                          className="w-full bg-[#E9F7F1] hover:bg-[#17A673] text-[#17A673] hover:text-white text-xs font-bold py-2 rounded-xl border border-[#17A673]/30 transition-all flex items-center justify-center gap-1"
+                        >
+                          <span>Anzeige ansehen</span>
+                          <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB: NACHRICHTEN (MESSAGES) */}
+        {activeTab === 'messages' && (
+          <div className="bg-white border border-[#DEE3DE] rounded-xl p-6 shadow-subtle space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#DEE3DE] pb-4">
+              <div>
+                <h3 className="text-base font-bold text-[#151815]">Meine Nachrichten</h3>
+                <p className="text-xs text-[#68716A]">Nachrichten und Preisverhandlungen zu deinen Anzeigen und Käufen.</p>
+              </div>
+              <Link
+                href="/messages"
+                className="self-start sm:self-auto inline-flex items-center gap-1.5 px-4 py-2 bg-[#17A673] hover:bg-[#12835B] text-white text-xs font-bold rounded-xl shadow-2xs transition-colors"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>Zum Posteingang</span>
+              </Link>
+            </div>
+
+            {tabLoading ? (
+              <div className="text-center py-12 flex flex-col items-center justify-center text-xs text-[#68716A] font-semibold gap-2">
+                <Loader2 className="w-6 h-6 animate-spin text-[#17A673]" />
+                <span>Lade Konversationen...</span>
+              </div>
+            ) : conversations.length === 0 ? (
+              <div className="text-center py-14 space-y-3">
+                <div className="w-14 h-14 rounded-2xl bg-[#E9F7F1] text-[#17A673] flex items-center justify-center mx-auto">
+                  <MessageSquare className="w-7 h-7" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-bold text-sm text-[#151815]">Noch keine Nachrichten vorhanden</h4>
+                  <p className="text-xs text-[#68716A] max-w-sm mx-auto">
+                    Schreibe Verkäufern oder erhalte Anfragen von Interessenten für deine Inserate.
+                  </p>
+                </div>
+                <Link
+                  href="/"
+                  className="inline-flex items-center gap-1.5 bg-[#17A673] hover:bg-[#12835B] text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-2xs transition-colors"
+                >
+                  <span>Anzeigen durchstöbern</span>
+                  <ArrowLeft className="w-4 h-4 rotate-180" />
+                </Link>
+              </div>
+            ) : (
+              <div className="divide-y divide-[#DEE3DE]">
+                {conversations.map((conv) => (
+                  <div
+                    key={conv.id}
+                    className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#FAFBFA] p-3 rounded-xl transition-colors"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#17A673] to-[#12835B] text-white font-black text-sm flex items-center justify-center shrink-0 shadow-2xs">
+                        {conv.otherUser?.name ? conv.otherUser.name.charAt(0).toUpperCase() : 'U'}
+                      </div>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm text-[#151815]">{conv.otherUser?.name || 'Nutzer'}</span>
+                          {conv.lastMessageTime && (
+                            <span className="text-[10px] text-[#68716A]">{conv.lastMessageTime}</span>
+                          )}
+                        </div>
+                        {conv.listing && (
+                          <div className="text-xs font-semibold text-[#17A673] line-clamp-1">
+                            Anzeige: {conv.listing.title} ({conv.listing.price} €)
+                          </div>
+                        )}
+                        <p className="text-xs text-[#68716A] line-clamp-1">{conv.lastMessage || 'Keine Nachrichten'}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 self-end sm:self-center">
+                      <Link
+                        href={`/messages`}
+                        className="px-4 py-2 bg-[#17A673] hover:bg-[#12835B] text-white text-xs font-bold rounded-xl shadow-2xs transition-colors flex items-center gap-1.5"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        <span>Chat öffnen</span>
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
