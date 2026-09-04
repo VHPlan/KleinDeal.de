@@ -139,14 +139,29 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
   const isDemoItem = listing.isDemo || listing.id.startsWith('demo-');
   const isFav = checkFavorited(listing.id);
 
-  const handleShare = () => {
+  const handleShare = async () => {
     try {
       if (typeof window !== 'undefined') {
-        navigator.clipboard.writeText(window.location.href);
-        showToast('✓ Link in die Zwischenablage kopiert!', 'success');
+        if (navigator.share) {
+          await navigator.share({
+            title: listing.title,
+            text: `Schau dir dieses Angebot auf KleinDeal.de an: ${listing.title}`,
+            url: window.location.href,
+          });
+        } else {
+          await navigator.clipboard.writeText(window.location.href);
+          showToast('✓ Link in die Zwischenablage kopiert!', 'success');
+        }
       }
-    } catch (e) {
-      showToast('Link kopiert', 'info');
+    } catch (e: any) {
+      if (e?.name !== 'AbortError') {
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+          showToast('✓ Link in die Zwischenablage kopiert!', 'success');
+        } catch {
+          showToast('Link kopiert', 'info');
+        }
+      }
     }
   };
 

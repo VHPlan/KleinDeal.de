@@ -78,26 +78,45 @@ export default function MessagesPage() {
     loadConversations();
   }, [user]);
 
-  // Load messages and offers for selected conversation
+  // Load messages and offers for selected conversation with live polling
   useEffect(() => {
     if (!user?.id || !selectedConvId) return;
     const currentUserId = user.id;
+    let isMounted = true;
+
     async function loadThreadData() {
       try {
-        const resMsg = await fetch(`/api/messages?conversationId=${selectedConvId}&userId=${currentUserId}`);
-        if (resMsg.ok) {
-          setMessages(await resMsg.json());
-        }
+        const [resMsg, resOffers] = await Promise.all([
+          fetch(`/api/messages?conversationId=${selectedConvId}&userId=${currentUserId}`),
+          fetch(`/api/offers?conversationId=${selectedConvId}`)
+        ]);
 
-        const resOffers = await fetch(`/api/offers?conversationId=${selectedConvId}`);
-        if (resOffers.ok) {
-          setOffers(await resOffers.json());
+        if (isMounted) {
+          if (resMsg.ok) {
+            const data = await resMsg.json();
+            setMessages(data);
+          }
+          if (resOffers.ok) {
+            const data = await resOffers.json();
+            setOffers(data);
+          }
         }
       } catch (e) {
         console.error(e);
       }
     }
+
     loadThreadData();
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        loadThreadData();
+      }
+    }, 4000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, [selectedConvId, user]);
 
   // Auto scroll to bottom
