@@ -17,29 +17,29 @@ import {
   X,
   Check,
   Flame,
-  ArrowRight
+  ArrowRight,
+  Gamepad2,
+  Bike,
+  BookOpen,
+  Hammer,
+  Gift,
+  Layers
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, React.ReactNode> = {
-  Car: <Car className="w-5 h-5" />,
-  Home: <Home className="w-5 h-5" />,
-  Smartphone: <Smartphone className="w-5 h-5" />,
-  Wrench: <Wrench className="w-5 h-5" />,
-  ShoppingBag: <ShoppingBag className="w-5 h-5" />,
-  Heart: <Heart className="w-5 h-5" />,
-  Briefcase: <Briefcase className="w-5 h-5" />,
-  Dog: <Dog className="w-5 h-5" />,
-};
-
-const CATEGORY_SUBTEXT: Record<string, { de: string; en: string }> = {
-  fahrzeuge: { de: 'Autos & E-Bikes', en: 'Cars & Bikes' },
-  immobilien: { de: 'Wohnungen & Häuser', en: 'Flats & Houses' },
-  technik: { de: 'Handys & Laptops', en: 'Phones & Laptops' },
-  'haus-garten': { de: 'Möbel & Garten', en: 'Furniture & Garden' },
-  mode: { de: 'Kleidung & Uhren', en: 'Clothes & Watches' },
-  'baby-kind': { de: 'Spielzeug & Sitze', en: 'Toys & Strollers' },
-  jobs: { de: 'Jobs & Minijobs', en: 'Jobs & Freelance' },
-  haustiere: { de: 'Tiere & Zubehör', en: 'Pets & Supplies' },
+  Car: <Car className="w-5 h-5 sm:w-6 sm:h-6" />,
+  Home: <Home className="w-5 h-5 sm:w-6 sm:h-6" />,
+  Smartphone: <Smartphone className="w-5 h-5 sm:w-6 sm:h-6" />,
+  Gamepad2: <Gamepad2 className="w-5 h-5 sm:w-6 sm:h-6" />,
+  Wrench: <Wrench className="w-5 h-5 sm:w-6 sm:h-6" />,
+  ShoppingBag: <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" />,
+  Heart: <Heart className="w-5 h-5 sm:w-6 sm:h-6" />,
+  Bike: <Bike className="w-5 h-5 sm:w-6 sm:h-6" />,
+  BookOpen: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />,
+  Dog: <Dog className="w-5 h-5 sm:w-6 sm:h-6" />,
+  Briefcase: <Briefcase className="w-5 h-5 sm:w-6 sm:h-6" />,
+  Hammer: <Hammer className="w-5 h-5 sm:w-6 sm:h-6" />,
+  Gift: <Gift className="w-5 h-5 sm:w-6 sm:h-6" />,
 };
 
 interface CategoryGridProps {
@@ -93,20 +93,20 @@ export default function CategoryGrid({
   };
 
   return (
-    <section className="py-8">
+    <section className="py-6 sm:py-8">
       {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-base sm:text-lg font-black text-[#151815] tracking-tight">
-              {t.featuredCategories || 'Kategorien durchsuchen'}
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-lg sm:text-xl font-black text-[#151815] tracking-tight flex items-center gap-2">
+              <span>{t.featuredCategories || 'Kategorien durchsuchen'}</span>
             </h2>
-            <span className="hidden sm:inline-flex items-center text-[10px] font-bold text-[#17A673] bg-[#E9F7F1] px-2 py-0.5 rounded-full border border-[#17A673]/20">
-              8 Bereiche
+            <span className="inline-flex items-center text-[10px] font-extrabold text-[#17A673] bg-[#E9F7F1] px-2.5 py-0.5 rounded-full border border-[#17A673]/20 shadow-2xs">
+              {CATEGORIES.length} Themenwelten
             </span>
           </div>
           <p className="text-xs text-[#68716A] mt-0.5">
-            Entdecke geprüfte Angebote aus Deutschland nach Themen sortiert.
+            Finde gezielt Angebote, Schnäppchen und Services aus deiner Region in allen Bereichen.
           </p>
         </div>
 
@@ -120,7 +120,7 @@ export default function CategoryGrid({
                   onSelectCategory(null);
                   if (onSelectSubcategory) onSelectSubcategory(null);
                 }}
-                className="inline-flex items-center gap-1.5 text-xs font-bold bg-[#E9F7F1] text-[#17A673] border border-[#17A673]/30 px-3 py-1.5 rounded-full shadow-2xs hover:bg-[#d5f3e6] transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs font-extrabold bg-[#E9F7F1] text-[#17A673] border border-[#17A673]/30 px-3 py-1.5 rounded-full shadow-2xs hover:bg-[#d5f3e6] transition-colors cursor-pointer"
               >
                 <span>{activeCategoryObj?.nameDe || selectedCategory}</span>
                 <X className="w-3.5 h-3.5" />
@@ -131,7 +131,7 @@ export default function CategoryGrid({
               <button
                 type="button"
                 onClick={() => onSelectSubcategory && onSelectSubcategory(null)}
-                className="inline-flex items-center gap-1.5 text-xs font-bold bg-[#E9F7F1] text-[#17A673] border border-[#17A673]/30 px-3 py-1.5 rounded-full hover:bg-[#d5f3e6] transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs font-bold bg-[#E9F7F1] text-[#17A673] border border-[#17A673]/30 px-3 py-1.5 rounded-full hover:bg-[#d5f3e6] transition-colors cursor-pointer"
               >
                 <span>{selectedSubcategory}</span>
                 <X className="w-3.5 h-3.5" />
@@ -144,7 +144,7 @@ export default function CategoryGrid({
                 onSelectCategory(null);
                 if (onSelectSubcategory) onSelectSubcategory(null);
               }}
-              className="text-xs font-bold text-[#68716A] hover:text-[#151815] underline"
+              className="text-xs font-bold text-[#68716A] hover:text-[#151815] underline cursor-pointer"
             >
               Alle zurücksetzen
             </button>
@@ -152,107 +152,111 @@ export default function CategoryGrid({
         )}
       </div>
 
-      {/* Modern 8-Column Grid (4 cols on mobile, 4 on tablet, 8 on desktop) */}
-      <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3 lg:gap-3.5">
+      {/* Modern Multi-Column Grid (3 on mobile, 4 on tablet, 7 on desktop) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2.5 sm:gap-3.5">
         {CATEGORIES.map((cat) => {
           const isSelected = selectedCategory === cat.id;
           const name = lang === 'de' ? cat.nameDe : cat.nameEn;
-          const subtext = CATEGORY_SUBTEXT[cat.id] || { de: '', en: '' };
           const count = categoryCounts[cat.id] ?? 0;
+          const badge = lang === 'de' ? cat.badgeDe : cat.badgeEn;
 
           return (
             <button
               key={cat.id}
               type="button"
               onClick={() => handleCategoryClick(cat.id)}
-              className={`relative flex flex-col justify-between p-2 sm:p-3.5 rounded-xl sm:rounded-2xl border text-center sm:text-left transition-all duration-200 group cursor-pointer ${
+              className={`relative flex flex-col justify-between p-3.5 sm:p-4 rounded-2xl border text-left transition-all duration-200 group cursor-pointer ${
                 isSelected
-                  ? 'bg-[#E9F7F1] border-[#17A673] ring-2 ring-[#17A673]/30 text-[#151815] shadow-sm scale-[1.02]'
-                  : 'bg-white hover:bg-[#FAFBFA] border-[#DEE3DE] hover:border-[#17A673] hover:shadow-subtle hover:-translate-y-0.5 sm:hover:-translate-y-1 text-[#151815]'
+                  ? 'bg-gradient-to-b from-[#E9F7F1] to-white border-[#17A673] ring-2 ring-[#17A673]/30 text-[#151815] shadow-sm scale-[1.02]'
+                  : 'bg-white hover:bg-[#FAFBFA] border-[#DEE3DE] hover:border-[#17A673] hover:shadow-subtle hover:-translate-y-1 text-[#151815]'
               }`}
             >
-              {/* Icon Container */}
-              <div className="flex items-center justify-center sm:justify-between w-full mb-1.5 sm:mb-3">
-                <div className={`w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center transition-all ${
-                  isSelected 
-                    ? 'bg-[#17A673] text-white shadow-sm' 
-                    : 'bg-[#F6F7F4] group-hover:bg-[#E9F7F1] text-[#171A17] group-hover:text-[#17A673]'
-                }`}>
-                  {ICON_MAP[cat.iconName]}
+              {/* Badge (if available) */}
+              {badge && (
+                <div className="absolute top-2.5 right-2.5 hidden sm:block">
+                  <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${
+                    isSelected ? 'bg-[#17A673] text-white' : 'bg-[#F1F3EE] text-[#68716A] group-hover:bg-[#E9F7F1] group-hover:text-[#17A673]'
+                  }`}>
+                    {badge}
+                  </span>
                 </div>
+              )}
 
-                {/* Real Dynamic Counter Pill (Desktop & Tablet) */}
-                <span className={`hidden sm:inline-block text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+              {/* Icon Container with Custom Color Theme */}
+              <div className="mb-2.5 sm:mb-3">
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-all ${
                   isSelected 
-                    ? 'bg-white text-[#17A673] shadow-2xs' 
-                    : 'bg-[#F6F7F4] text-[#68716A] group-hover:text-[#151815]'
+                    ? 'bg-[#17A673] text-white shadow-sm ring-2 ring-white' 
+                    : cat.colorBg || 'bg-[#F6F7F4] text-[#151815] group-hover:bg-[#E9F7F1] group-hover:text-[#17A673]'
                 }`}>
-                  {count}
-                </span>
+                  {ICON_MAP[cat.iconName] || <Layers className="w-5 h-5" />}
+                </div>
               </div>
 
-              {/* Title & Description Subtext */}
+              {/* Title & Count */}
               <div className="w-full">
-                <h3 className={`text-[11px] sm:text-xs font-bold sm:font-extrabold leading-tight sm:leading-snug truncate sm:line-clamp-1 ${
+                <h3 className={`text-xs sm:text-[13px] font-extrabold leading-snug line-clamp-1 ${
                   isSelected ? 'text-[#17A673]' : 'text-[#151815] group-hover:text-[#17A673] transition-colors'
                 }`}>
                   {name}
                 </h3>
-                <p className="hidden sm:block text-[10px] mt-0.5 line-clamp-1 text-[#68716A]">
-                  {lang === 'de' ? subtext.de : subtext.en}
-                </p>
-              </div>
-
-              {/* Active Indicator Bar (Tablet & Desktop) */}
-              {isSelected && (
-                <div className="hidden sm:flex mt-2.5 pt-2 border-t border-[#17A673]/20 items-center justify-between text-[10px] font-bold text-[#17A673]">
-                  <span>Aktiv</span>
-                  <Check className="w-3 h-3" />
+                
+                <div className="flex items-center justify-between mt-1 text-[10px] text-[#68716A]">
+                  <span className="font-semibold">
+                    {count} {count === 1 ? 'Anzeige' : 'Anzeigen'}
+                  </span>
+                  {isSelected && (
+                    <span className="inline-flex items-center gap-0.5 text-[#17A673] font-bold">
+                      <Check className="w-3 h-3" />
+                    </span>
+                  )}
                 </div>
-              )}
+              </div>
             </button>
           );
         })}
       </div>
 
-      {/* Subcategory Exploration Bar (Appears when a category is selected) */}
+      {/* Modern Subcategory Exploration Drawer (Opens when category is selected) */}
       {activeCategoryObj && (
         <div 
           ref={subcategoryBarRef}
-          className="mt-3 sm:mt-4 p-3 sm:p-4 bg-[#F6F7F4] border border-[#DEE3DE] rounded-2xl animate-fadeIn"
+          className="mt-4 sm:mt-5 p-4 sm:p-5 bg-gradient-to-r from-[#F6F7F4] via-white to-[#E9F7F1]/20 border border-[#DEE3DE] rounded-2xl shadow-subtle animate-fadeIn"
         >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3.5">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-[#151815]">
-                Bereiche in {activeCategoryObj.nameDe}:
+              <div className="w-6 h-6 rounded-lg bg-[#E9F7F1] text-[#17A673] flex items-center justify-center font-bold text-xs">
+                ✓
+              </div>
+              <span className="text-xs sm:text-sm font-black text-[#151815]">
+                Unterkategorien in {activeCategoryObj.nameDe}:
               </span>
-              <span className="text-[11px] text-[#68716A] hidden sm:inline">
-                Wähle einen Unterbereich zur gezielten Filterung
+              <span className="text-[11px] text-[#68716A] hidden md:inline">
+                (Wähle einen Bereich für präzise Suchergebnisse)
               </span>
             </div>
             <button
               type="button"
               onClick={() => onSelectCategory(null)}
-              className="text-xs font-bold text-[#68716A] hover:text-[#151815] flex items-center gap-1 self-end sm:self-auto"
+              className="text-xs font-bold text-[#68716A] hover:text-[#151815] flex items-center gap-1 self-end sm:self-auto cursor-pointer"
             >
-              <span>Schließen</span>
+              <span>Alle Bereiche schließen</span>
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
-
 
           <div className="flex items-center gap-2 flex-wrap">
             {/* "Alle in [Kategorie]" button */}
             <button
               type="button"
               onClick={() => handleSubcategoryClick(null)}
-              className={`text-xs px-3.5 py-1.5 rounded-xl font-bold transition-all ${
+              className={`text-xs px-4 py-2 rounded-xl font-extrabold transition-all cursor-pointer ${
                 !selectedSubcategory
                   ? 'bg-[#17A673] text-white shadow-sm'
-                  : 'bg-white hover:bg-[#E9F7F1] text-[#151815] border border-[#DEE3DE]'
+                  : 'bg-white hover:bg-[#E9F7F1] text-[#151815] border border-[#DEE3DE] shadow-2xs'
               }`}
             >
-              Alle in {activeCategoryObj.nameDe}
+              Alle in {activeCategoryObj.nameDe} ({categoryCounts[activeCategoryObj.id] ?? 0})
             </button>
 
             {/* Individual Subcategories */}
@@ -264,10 +268,10 @@ export default function CategoryGrid({
                   key={sub}
                   type="button"
                   onClick={() => handleSubcategoryClick(isSubActive ? null : sub)}
-                  className={`text-xs px-3.5 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 ${
+                  className={`text-xs px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                     isSubActive
                       ? 'bg-[#17A673] text-white shadow-sm'
-                      : 'bg-white hover:bg-[#E9F7F1] hover:text-[#17A673] text-[#151815] border border-[#DEE3DE]'
+                      : 'bg-white hover:bg-[#E9F7F1] hover:text-[#17A673] text-[#151815] border border-[#DEE3DE] shadow-2xs'
                   }`}
                 >
                   <span>{sub}</span>
