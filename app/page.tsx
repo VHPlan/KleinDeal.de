@@ -28,7 +28,9 @@ import {
   Flame,
   Check,
   Users,
-  Loader2
+  Loader2,
+  Globe,
+  Compass
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -43,6 +45,7 @@ export default function HomePage() {
   const { showToast } = useToast();
 
   const [listings, setListings] = useState<Listing[]>([]);
+  const [fallbackListings, setFallbackListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
 
   const handleCreateAdClick = (e: React.MouseEvent) => {
@@ -69,14 +72,15 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [locationQuery, setLocationQuery] = useState('');
 
-  // Restore saved location if available
+  // Restore saved location if available on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem('kleindeal_location');
-      if (saved && !locationQuery) {
+      if (saved) {
         setLocationQuery(saved);
       }
     } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleUpdateLocation = (newLoc: string) => {
@@ -173,6 +177,17 @@ export default function HomePage() {
       const data = await res.json();
       if (Array.isArray(data)) {
         setListings(data);
+        if (data.length === 0 && (locationQuery || searchQuery || selectedCategory)) {
+          try {
+            const fbRes = await fetch('/api/listings');
+            const fbData = await fbRes.json();
+            if (Array.isArray(fbData)) {
+              setFallbackListings(fbData);
+            }
+          } catch {}
+        } else {
+          setFallbackListings([]);
+        }
       }
     } catch (e) {
       console.error('Error loading DB listings:', e);
@@ -716,38 +731,114 @@ export default function HomePage() {
               Lade Angebote in deiner Nähe...
             </div>
           ) : filteredListings.length === 0 ? (
-            /* Compact Polished Empty State */
-            <div className="text-center py-12 bg-[#F6F7F4] rounded-xl border border-[#DEE3DE] my-6 max-w-lg mx-auto p-6 space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-white border border-[#DEE3DE] text-[#17A673] mx-auto flex items-center justify-center shadow-subtle">
-                <Filter className="w-5 h-5 stroke-[2]" />
-              </div>
-              <div>
-                <h4 className="text-sm font-bold text-[#151815]">{t.emptyStateTitle}</h4>
-                <p className="text-xs text-[#68716A] mt-0.5">
-                  {t.emptyStateDesc}
-                </p>
+            /* Premium Rich Empty State & Nationwide Recommendations */
+            <div className="space-y-8 my-6">
+              {/* Informative Notice Card */}
+              <div className="bg-gradient-to-br from-white via-[#F6F7F4] to-[#E9F7F1]/30 rounded-2xl border border-[#DEE3DE] p-6 sm:p-8 shadow-subtle text-center">
+                <div className="max-w-2xl mx-auto space-y-4">
+                  <div className="inline-flex items-center gap-2 bg-[#E9F7F1] text-[#17A673] px-3.5 py-1.5 rounded-full text-xs font-bold shadow-2xs">
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span>{locationQuery ? `Gesucht in: ${locationQuery}` : 'Filter aktiv'}</span>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-black text-[#151815] tracking-tight">
+                      {locationQuery 
+                        ? `Noch keine direkten Inserate in "${locationQuery}"`
+                        : 'Keine passenden Angebote gefunden'}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-[#68716A] mt-1 max-w-lg mx-auto leading-relaxed">
+                      {locationQuery 
+                        ? `In deinem unmittelbaren Postleitzahlengebiet gibt es aktuell noch keine Angebote. Du kannst ganz Deutschland durchsuchen, eine Such-Benachrichtigung anlegen oder selbst das erste Angebot einstellen!`
+                        : 'Passe deine Filterkriterien an oder entdecke beliebte Angebote aus ganz Deutschland.'}
+                    </p>
+                  </div>
+
+                  {/* Interactive Action Buttons */}
+                  <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
+                    {locationQuery && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleUpdateLocation('');
+                        }}
+                        className="bg-white hover:bg-[#F1F3EE] border border-[#DEE3DE] hover:border-[#17A673] text-[#151815] font-extrabold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                      >
+                        <Globe className="w-3.5 h-3.5 text-[#17A673]" />
+                        <span>Ganz Deutschland anzeigen</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleSaveSearch();
+                        showToast(`🔔 Suchauftrag für "${locationQuery || 'diese Suche'}" aktiviert! Du erhältst Benachrichtigungen bei neuen Angeboten.`, 'success');
+                      }}
+                      className="bg-white hover:bg-[#F1F3EE] border border-[#DEE3DE] hover:border-[#17A673] text-[#151815] font-extrabold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                    >
+                      <Bell className="w-3.5 h-3.5 text-amber-500" />
+                      <span>Suchauftrag aktivieren</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedCategory(null);
+                        setSelectedSubcategory(null);
+                        setSearchQuery('');
+                        handleUpdateLocation('');
+                        setConditionFilter('all');
+                      }}
+                      className="bg-white hover:bg-[#F1F3EE] border border-[#DEE3DE] text-[#68716A] hover:text-[#151815] font-bold text-xs px-3.5 py-2.5 rounded-xl transition-all cursor-pointer"
+                    >
+                      Filter zurücksetzen
+                    </button>
+
+                    <Link
+                      href="/create"
+                      className="bg-gradient-to-r from-[#17A673] to-[#12835B] hover:opacity-95 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>{locationQuery ? `Erste Anzeige in ${locationQuery} aufgeben` : 'Anzeige aufgeben'}</span>
+                    </Link>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex justify-center gap-2 pt-2">
-                <button
-                  onClick={() => {
-                    setSelectedCategory(null);
-                    setSelectedSubcategory(null);
-                    setSearchQuery('');
-                    setLocationQuery('');
-                    setConditionFilter('all');
-                  }}
-                  className="bg-white hover:bg-[#F1F3EE] border border-[#DEE3DE] text-[#151815] font-bold text-xs px-4 py-2 rounded-lg transition-colors"
-                >
-                  {t.resetFilterBtn}
-                </button>
-                <Link
-                  href="/create"
-                  className="bg-[#17A673] hover:bg-[#12835B] text-white font-bold text-xs px-4 py-2 rounded-lg shadow-sm transition-colors"
-                >
-                  {t.postAdButton}
-                </Link>
-              </div>
+              {/* Recommended Listings Across Germany */}
+              {fallbackListings.length > 0 && (
+                <div className="space-y-4 pt-2">
+                  <div className="flex items-center justify-between border-b border-[#DEE3DE] pb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-[#E9F7F1] flex items-center justify-center text-[#17A673]">
+                        <Sparkles className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-extrabold text-[#151815]">Beliebte Angebote in ganz Deutschland</h4>
+                        <p className="text-[11px] text-[#68716A]">Entdecke geprüfte Top-Inserate mit sicherem Versand & Direktkauf</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateLocation('')}
+                      className="text-xs font-bold text-[#17A673] hover:underline cursor-pointer"
+                    >
+                      Alle {fallbackListings.length} Angebote ansehen →
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+                    {fallbackListings.slice(0, 8).map((item) => (
+                      <ListingCard
+                        key={`fallback-${item.id}`}
+                        listing={item}
+                        onOpenVideo={(url, title) => setActiveVideo({ url, title })}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             /* Real Listings Grid */
