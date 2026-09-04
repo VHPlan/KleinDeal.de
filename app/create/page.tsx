@@ -299,9 +299,71 @@ Privatverkauf: Keine Garantie, Gewährleistung oder Rücknahme.`;
           </Link>
 
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold text-[#17A673] bg-[#E9F7F1] px-2.5 py-1 rounded-full border border-[#17A673]/20">
-              Kostenlose Kleinanzeige
+            <span className="text-[11px] font-bold text-amber-800 bg-amber-100 px-3 py-1 rounded-full border border-amber-300 flex items-center gap-1">
+              <span>🚧</span> Vorschau- & Testmodus
             </span>
+          </div>
+        </div>
+
+        {/* In-Development / Maintenance Status Card */}
+        <div className="mb-8 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-white border-2 border-amber-400/50 rounded-3xl p-6 sm:p-8 shadow-subtle space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold text-xl shadow-xs shrink-0">
+                🚧
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-base sm:text-lg font-black text-[#151815]">
+                    Plattform-Vorschau & Entwicklungsphase
+                  </h2>
+                  <span className="bg-amber-400 text-[#151815] text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-2xs">
+                    In Vorbereitung
+                  </span>
+                </div>
+                <p className="text-xs text-[#68716A] mt-0.5">
+                  KleinDeal.de wird derzeit für den offiziellen Start fertiggestellt. Das Veröffentlichen neuer Anzeigen ist in Kürze verfügbar!
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Development Status Timeline / Features List */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+            <div className="bg-white border border-[#DEE3DE] rounded-2xl p-3 text-xs space-y-1">
+              <div className="flex items-center gap-1.5 font-bold text-[#17A673]">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Marktplatz & Suche</span>
+              </div>
+              <p className="text-[11px] text-[#68716A]">100% gebührenfrei & lokale GPS-Umkreissuche aktiv.</p>
+            </div>
+
+            <div className="bg-white border border-[#DEE3DE] rounded-2xl p-3 text-xs space-y-1">
+              <div className="flex items-center gap-1.5 font-bold text-[#17A673]">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Chat & Angebote</span>
+              </div>
+              <p className="text-[11px] text-[#68716A]">Direktnachrichten & Preisverhandlungen bereit.</p>
+            </div>
+
+            <div className="bg-white border border-[#DEE3DE] rounded-2xl p-3 text-xs space-y-1">
+              <div className="flex items-center gap-1.5 font-bold text-[#17A673]">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Bewertungssystem</span>
+              </div>
+              <p className="text-[11px] text-[#68716A]">1-5 Sterne Verkäuferbewertungen aktiv.</p>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-300 rounded-2xl p-3 text-xs space-y-1">
+              <div className="flex items-center gap-1.5 font-bold text-amber-800">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
+                <span>Anzeigen-Freigabe</span>
+              </div>
+              <p className="text-[11px] text-amber-900">Finale Optimierung vor dem offiziellen Start.</p>
+            </div>
           </div>
         </div>
 
@@ -902,33 +964,32 @@ Privatverkauf: Keine Garantie, Gewährleistung oder Rücknahme.`;
                 <button
                   type="button"
                   disabled={isSubmitting}
-                  onClick={() => handleSaveListing('ACTIVE')}
+                  onClick={() => handleSaveListing('DRAFT')}
                   className="w-full bg-[#17A673] hover:bg-[#12835B] active:scale-95 text-white font-black text-sm py-4 rounded-2xl shadow-sm hover:shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    <Plus className="w-4 h-4 stroke-[3]" />
+                    <Save className="w-4 h-4" />
                   )}
-                  <span>{isSubmitting ? 'Wird veröffentlicht...' : 'Jetzt kostenlos veröffentlichen'}</span>
+                  <span>{isSubmitting ? 'Wird gespeichert...' : 'Anzeige als Entwurf speichern'}</span>
                 </button>
 
-                <button
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={() => handleSaveListing('DRAFT')}
-                  className="w-full bg-[#F6F7F4] hover:bg-[#F1F3EE] active:scale-95 text-[#151815] border border-[#DEE3DE] font-bold text-xs py-3 rounded-2xl flex items-center justify-center gap-2 transition-all cursor-pointer"
-                >
-                  <Save className="w-3.5 h-3.5 text-[#68716A]" />
-                  <span>Als Entwurf speichern</span>
-                </button>
+                <div className="p-3 bg-amber-50 rounded-2xl border border-amber-300 text-center space-y-1">
+                  <span className="text-xs font-black text-amber-800 flex items-center justify-center gap-1.5">
+                    <span>🚧</span> Plattform im Aufbau
+                  </span>
+                  <p className="text-[11px] text-amber-900 leading-snug">
+                    Die öffentliche Veröffentlichung wird nach Abschluss der aktuellen Vorbereitungen freigeschaltet. Deine Entwürfe bleiben in deinem Profil gespeichert.
+                  </p>
+                </div>
               </div>
 
               {/* Trust Badge */}
               <div className="p-3 bg-[#F6F7F4] rounded-2xl border border-[#DEE3DE] flex items-center gap-3">
                 <ShieldCheck className="w-5 h-5 text-[#17A673] shrink-0" />
                 <p className="text-[10px] text-[#68716A] leading-tight">
-                  Deine Anzeige ist sofort nach Freigabe für tausende Käufer aus deiner Region sichtbar.
+                  Deine gespeicherten Inserate kannst du jederzeit unter „Meine Anzeigen” verwalten und bearbeiten.
                 </p>
               </div>
             </div>
@@ -941,12 +1002,12 @@ Privatverkauf: Keine Garantie, Gewährleistung oder Rücknahme.`;
         {isPublished && (
           <div className="fixed inset-0 bg-[#171A17]/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
             <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-restrained border border-[#DEE3DE]">
-              <div className="w-16 h-16 rounded-full bg-[#E9F7F1] text-[#17A673] mx-auto flex items-center justify-center">
-                <Check className="w-8 h-8 stroke-[3]" />
+              <div className="w-16 h-16 rounded-full bg-amber-100 text-amber-700 mx-auto flex items-center justify-center text-2xl font-bold">
+                🚧
               </div>
-              <h3 className="text-xl font-black text-[#151815]">Anzeige erfolgreich online!</h3>
+              <h3 className="text-xl font-black text-[#151815]">Anzeige sicher gespeichert!</h3>
               <p className="text-xs text-[#68716A]">
-                Dein Inserat wurde erfolgreich gespeichert und ist jetzt verfügbar. Weiterleitung zu deinen Anzeigen...
+                Deine Anzeige wurde als <strong>Entwurf</strong> in deinem Benutzerkonto hinterlegt. Zum offiziellen Start von KleinDeal.de wird sie für alle Käufer online geschaltet.
               </p>
             </div>
           </div>

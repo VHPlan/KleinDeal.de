@@ -110,6 +110,16 @@ export default function Header({ onSearchChange }: HeaderProps) {
   return (
     <>
       <header className="sticky top-0 z-40 bg-white border-b border-[#DEE3DE] shadow-subtle">
+        {/* Top Pre-Launch / In-Development Notice Banner */}
+        <div className="bg-gradient-to-r from-amber-500 via-amber-600 to-amber-500 text-white px-4 py-1.5 text-center text-[11px] sm:text-xs font-bold shadow-2xs flex items-center justify-center gap-2">
+          <span className="bg-black/20 px-2 py-0.5 rounded text-[10px] tracking-wide uppercase font-black shrink-0">
+            🚧 In Entwicklung
+          </span>
+          <span className="truncate">
+            KleinDeal.de befindet sich im finalen Aufbau. Das Aufgeben neuer Anzeigen wird in Kürze freigeschaltet!
+          </span>
+        </div>
+
         <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20 py-2 sm:py-3 gap-2 sm:gap-4">
             
@@ -321,10 +331,13 @@ export default function Header({ onSearchChange }: HeaderProps) {
               <Link
                 href="/create"
                 onClick={handleCreateAdClick}
-                className="bg-[#17A673] hover:bg-[#12835B] active:scale-95 text-white font-bold text-xs px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#17A673]"
+                className="relative bg-[#17A673] hover:bg-[#12835B] active:scale-95 text-white font-bold text-xs px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#17A673]"
               >
                 <Plus className="w-4 h-4 stroke-[3]" />
                 <span className="hidden sm:inline">{t.postAdButton}</span>
+                <span className="hidden lg:inline-block text-[9px] bg-amber-400 text-[#151815] font-black px-1.5 py-0.5 rounded-md leading-none shadow-2xs">
+                  In Kürze
+                </span>
               </Link>
 
               {/* Mobile Search Toggle */}
