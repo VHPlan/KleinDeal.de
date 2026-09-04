@@ -2,18 +2,6 @@ import type { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const isDemo = params.id.startsWith('demo-');
-
-  if (isDemo) {
-    return {
-      title: 'Beispielanzeige – KleinDeal.de',
-      robots: {
-        index: false,
-        follow: false,
-      },
-    };
-  }
-
   try {
     const listing = await prisma.listing.findUnique({
       where: { id: params.id },

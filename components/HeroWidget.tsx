@@ -82,39 +82,8 @@ export default function HeroWidget({
     }
   };
 
-  // Top 3 featured items for the 'deals' tab or spotlight
-  const displayDeals = listings.length > 0 ? listings.slice(0, 3) : [
-    {
-      id: 'demo-iphone',
-      title: 'Apple iPhone 15 Pro 256GB Titan',
-      price: 849,
-      priceType: 'negotiable',
-      locationCity: 'Karlsruhe',
-      locationPlz: '76131',
-      category: 'technik',
-      images: ['https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=400&q=80'],
-    },
-    {
-      id: 'demo-golf',
-      title: 'Volkswagen Golf 7 1.6 TDI Comfortline',
-      price: 9850,
-      priceType: 'negotiable',
-      locationCity: 'Karlsruhe',
-      locationPlz: '76133',
-      category: 'fahrzeuge',
-      images: ['https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=400&q=80'],
-    },
-    {
-      id: 'demo-table',
-      title: 'Massivholz-Esstisch Eiche mit Stühlen',
-      price: 480,
-      priceType: 'negotiable',
-      locationCity: 'Rastatt',
-      locationPlz: '76437',
-      category: 'haus-garten',
-      images: ['https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?auto=format&fit=crop&w=400&q=80'],
-    },
-  ];
+  // Top 3 featured items for the 'deals' tab (real database listings only)
+  const displayDeals = listings.slice(0, 3);
 
   return (
     <div className="w-full max-w-lg bg-white border border-[#DEE3DE] rounded-2xl shadow-restrained overflow-hidden transition-all">
@@ -284,63 +253,81 @@ export default function HeroWidget({
               <span className="text-[11px] font-medium text-[#17A673]">Direkt kontaktieren</span>
             </div>
 
-            {displayDeals.map((item) => {
-              const imageSrc = Array.isArray(item.images) && item.images.length > 0
-                ? item.images[0]
-                : typeof item.images === 'string'
-                  ? JSON.parse(item.images || '[]')[0] || 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=400&q=80'
-                  : 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=400&q=80';
-
-              return (
+            {displayDeals.length === 0 ? (
+              <div className="text-center py-8 px-4 bg-[#FAFBFA] rounded-2xl border border-[#DEE3DE] space-y-2">
+                <Flame className="w-8 h-8 text-[#17A673] mx-auto opacity-70" />
+                <p className="text-xs font-bold text-[#151815]">Noch keine Inserate vorhanden</p>
+                <p className="text-[11px] text-[#68716A]">Sei der Erste, der ein Angebot in deiner Region einstellt!</p>
                 <Link
-                  key={item.id}
-                  href={`/listing/${item.id}`}
-                  className="group flex items-center gap-3 p-2.5 bg-[#FAFBFA] hover:bg-white border border-[#DEE3DE] hover:border-[#17A673] rounded-xl shadow-sm hover:shadow-subtle transition-all"
+                  href="/create"
+                  className="inline-block mt-2 px-4 py-2 bg-[#17A673] hover:bg-[#12835B] text-white text-xs font-bold rounded-xl shadow-2xs transition-colors"
                 >
-                  <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-[#F6F7F4] shrink-0">
-                    <Image
-                      src={imageSrc}
-                      alt={item.title}
-                      fill
-                      sizes="56px"
-                      className="object-cover group-hover:scale-105 transition-transform"
-                    />
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between text-[10px] text-[#68716A] mb-0.5">
-                      <span>{item.locationCity || 'Deutschland'}</span>
-                      <span className="text-[#17A673] font-bold flex items-center gap-0.5">
-                        <ShieldCheck className="w-3 h-3" />
-                        Geprüft
-                      </span>
-                    </div>
-
-                    <h4 className="font-bold text-xs text-[#151815] truncate group-hover:text-[#17A673] transition-colors">
-                      {item.title}
-                    </h4>
-
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="font-black text-xs sm:text-sm text-[#151815]">
-                        {item.price.toLocaleString('de-DE')} € {item.priceType === 'negotiable' ? 'VB' : ''}
-                      </span>
-                      <span className="text-[10px] text-[#17A673] font-bold flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
-                        Ansehen <ChevronRight className="w-3 h-3" />
-                      </span>
-                    </div>
-                  </div>
+                  Jetzt kostenlos inserieren
                 </Link>
-              );
-            })}
+              </div>
+            ) : (
+              <>
+                {displayDeals.map((item) => {
+                  const imageSrc = Array.isArray(item.images) && item.images.length > 0
+                    ? item.images[0]
+                    : typeof item.images === 'string'
+                      ? JSON.parse(item.images || '[]')[0] || '/images/placeholder.svg'
+                      : '/images/placeholder.svg';
 
-            <div className="pt-2">
-              <a
-                href="#listings"
-                className="w-full block text-center bg-white hover:bg-[#F6F7F4] text-[#151815] font-bold text-xs py-2.5 rounded-xl border border-[#DEE3DE] transition-colors"
-              >
-                Alle {listings.length > 0 ? listings.length : '24+'} Angebote entdecken →
-              </a>
-            </div>
+                  return (
+                    <Link
+                      key={item.id}
+                      href={`/listing/${item.id}`}
+                      className="group flex items-center gap-3 p-2.5 bg-[#FAFBFA] hover:bg-white border border-[#DEE3DE] hover:border-[#17A673] rounded-xl shadow-sm hover:shadow-subtle transition-all"
+                    >
+                      <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-[#F6F7F4] shrink-0">
+                        <Image
+                          src={imageSrc}
+                          alt={item.title || 'Anzeige'}
+                          fill
+                          sizes="56px"
+                          className="object-cover group-hover:scale-105 transition-transform"
+                          unoptimized={imageSrc.startsWith('data:') || imageSrc.startsWith('blob:')}
+                        />
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between text-[10px] text-[#68716A] mb-0.5">
+                          <span>{item.locationCity || 'Deutschland'}</span>
+                          <span className="text-[#17A673] font-bold flex items-center gap-0.5">
+                            <ShieldCheck className="w-3 h-3" />
+                            Geprüft
+                          </span>
+                        </div>
+
+                        <h4 className="font-bold text-xs text-[#151815] truncate group-hover:text-[#17A673] transition-colors">
+                          {item.title}
+                        </h4>
+
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="font-black text-xs sm:text-sm text-[#151815]">
+                            {item.price !== undefined ? `${Number(item.price).toLocaleString('de-DE')} €` : 'VB'}{' '}
+                            {item.priceType === 'negotiable' ? 'VB' : ''}
+                          </span>
+                          <span className="text-[10px] text-[#17A673] font-bold flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                            Ansehen <ChevronRight className="w-3 h-3" />
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+
+                <div className="pt-2">
+                  <a
+                    href="#listings"
+                    className="w-full block text-center bg-white hover:bg-[#F6F7F4] text-[#151815] font-bold text-xs py-2.5 rounded-xl border border-[#DEE3DE] transition-colors"
+                  >
+                    Alle {listings.length} Angebote entdecken →
+                  </a>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

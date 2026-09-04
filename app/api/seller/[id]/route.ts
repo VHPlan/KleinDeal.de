@@ -1,29 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { IS_DEMO_MODE_ENABLED } from '@/lib/config';
-import { DEMO_SELLERS, DEMO_LISTINGS } from '@/lib/demoListings';
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
     const sellerId = params.id;
 
-    // 1. Check if demo seller profile requested
-    if (sellerId.startsWith('seller-')) {
-      if (IS_DEMO_MODE_ENABLED) {
-        const demoSeller = Object.values(DEMO_SELLERS).find((s) => s.id === sellerId);
-        if (demoSeller) {
-          const sellerListings = DEMO_LISTINGS.filter((l) => l.seller?.id === sellerId);
-          return NextResponse.json({
-            seller: demoSeller,
-            activeCount: sellerListings.length,
-            listings: sellerListings,
-          });
-        }
-      }
-      return NextResponse.json({ error: 'Verkäufer nicht gefunden' }, { status: 404 });
-    }
-
-    // 2. Query real database seller profile
+    // Query real database seller profile
     const user = await prisma.user.findUnique({
       where: { id: sellerId },
       select: {

@@ -13,10 +13,6 @@ export async function GET(req: Request) {
 
     // If specific seller check
     if (sellerId) {
-      if (sellerId.startsWith('seller-')) {
-        return NextResponse.json({ following: false, isDemo: true });
-      }
-
       const follow = await prisma.follow.findUnique({
         where: {
           followerId_followingId: {
@@ -68,10 +64,6 @@ export async function POST(req: Request) {
 
     if (!sellerId) {
       return NextResponse.json({ error: 'Verkäufer-ID erforderlich' }, { status: 400 });
-    }
-
-    if (sellerId.startsWith('seller-')) {
-      return NextResponse.json({ following: true, isDemo: true });
     }
 
     if (sellerId === user!.id) {

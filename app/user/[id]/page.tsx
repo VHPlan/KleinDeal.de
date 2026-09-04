@@ -30,7 +30,6 @@ export default function SellerProfilePage({ params }: { params: { id: string } }
 
   // Decode seller name or fallback
   const sellerName = decodeURIComponent(params.id)
-    .replace('demo-', '')
     .replace(/-/g, ' ')
     .replace(/\b\w/g, (c) => c.toUpperCase()) || 'KleinDeal Verkäufer';
 

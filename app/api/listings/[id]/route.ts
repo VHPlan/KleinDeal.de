@@ -1,33 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { IS_DEMO_MODE_ENABLED } from '@/lib/config';
-import { DEMO_LISTINGS } from '@/lib/demoListings';
 import { getSessionUser, requireAuth } from '@/lib/auth';
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
     const listingId = params.id;
-
-    // 1. Check if demo listing requested
-    if (listingId.startsWith('demo-')) {
-      if (IS_DEMO_MODE_ENABLED) {
-        const demoItem = DEMO_LISTINGS.find((l) => l.id === listingId);
-        if (demoItem) {
-          const hash = listingId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-          const dynamicViews = demoItem.views || (120 + (hash % 180));
-          const dynamicFavorites = (hash % 14) + 3;
-          return NextResponse.json({
-            ...demoItem,
-            views: dynamicViews,
-            viewsCount: dynamicViews,
-            favoritesCount: dynamicFavorites,
-          });
-        }
-      }
-      return NextResponse.json({ error: 'Anzeige nicht gefunden' }, { status: 404 });
-    }
-
-    // 2. Query real database listing
     const item = await prisma.listing.findUnique({
       where: { id: listingId },
       include: {

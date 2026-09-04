@@ -51,13 +51,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Ungültiger Angebotsbetrag.' }, { status: 400 });
     }
 
-    if (listingId.startsWith('demo-')) {
-      return NextResponse.json(
-        { error: 'Diese Funktion ist für Beispielanzeigen deaktiviert.' },
-        { status: 400 }
-      );
-    }
-
     const listing = await prisma.listing.findUnique({ where: { id: listingId } });
     if (!listing || listing.status !== 'ACTIVE') {
       return NextResponse.json({ error: 'Anzeige nicht gefunden oder nicht mehr aktiv.' }, { status: 404 });

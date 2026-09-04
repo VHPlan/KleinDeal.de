@@ -138,7 +138,6 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
   const title = listing.title;
   const description = lang === 'de' ? listing.descriptionDe : listing.descriptionEn;
   const categoryName = lang === 'de' ? listing.categoryNameDe : listing.categoryNameEn;
-  const isDemoItem = listing.isDemo || listing.id.startsWith('demo-');
   const isFav = checkFavorited(listing.id);
 
   const handleShare = async () => {
@@ -478,7 +477,7 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
               
               {/* Seller Header with Link to Public Profile */}
               <Link 
-                href={`/user/${encodeURIComponent(listing.seller?.name || 'demo-seller')}`}
+                href={listing.seller?.id ? `/seller/${listing.seller.id}` : `/user/${encodeURIComponent(listing.seller?.name || 'seller')}`}
                 className="flex items-center gap-3.5 pb-4 border-b border-[#DEE3DE] group cursor-pointer"
                 title="Profil des Verkäufers ansehen"
               >

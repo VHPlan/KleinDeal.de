@@ -12,19 +12,6 @@ export async function GET(req: Request) {
 
     // 1. Specific listing analytics
     if (listingId) {
-      if (listingId.startsWith('demo-')) {
-        return NextResponse.json({
-          views7d: 142,
-          views30d: 580,
-          viewsTotal: 1240,
-          favoritesCount: 18,
-          inquiriesCount: 6,
-          offersCount: 3,
-          visibilityRating: 'Sehr gute Sichtbarkeit',
-          isDemo: true,
-        });
-      }
-
       const listing = await prisma.listing.findUnique({
         where: { id: listingId },
         include: {

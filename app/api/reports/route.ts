@@ -19,13 +19,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Bitte fülle alle Pflichtfelder aus.' }, { status: 400 });
     }
 
-    if (targetId.startsWith('demo-') || (reportedUserId && reportedUserId.startsWith('seller-'))) {
-      return NextResponse.json({
-        message: 'Vielen Dank. Deine Meldung wird geprüft.',
-        isDemo: true,
-      });
-    }
-
     // Check duplicate pending report
     const existing = await prisma.report.findFirst({
       where: {

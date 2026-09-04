@@ -68,57 +68,7 @@ export default function MyListingsPage() {
         }
       }
 
-      // If empty, supply high-quality initial items for the demo user
       let combined = [...localCreated, ...apiListings];
-      if (combined.length === 0) {
-        combined = [
-          {
-            id: 'my-item-1',
-            title: 'Apple iPhone 15 Pro 256GB Titan Natur - Wie neu',
-            price: 890,
-            priceType: 'negotiable',
-            status: 'ACTIVE',
-            images: ['https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80'],
-            categoryNameDe: 'Elektronik',
-            locationCity: 'Berlin',
-            locationPlz: '10115',
-            postedDate: 'Heute, 14:20',
-            views: 184,
-            favorites: 12,
-            isTop: true,
-          },
-          {
-            id: 'my-item-2',
-            title: 'Sony Alpha 7 IV Vollformat-Kamera (nur Body)',
-            price: 1650,
-            priceType: 'fixed',
-            status: 'ACTIVE',
-            images: ['https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=600&q=80'],
-            categoryNameDe: 'Foto & Kamera',
-            locationCity: 'Berlin',
-            locationPlz: '10115',
-            postedDate: 'Gestern',
-            views: 92,
-            favorites: 7,
-            isTop: false,
-          },
-          {
-            id: 'my-item-3',
-            title: 'Herman Miller Aeron Bürostuhl Größe B',
-            price: 720,
-            priceType: 'negotiable',
-            status: 'SOLD',
-            images: ['https://images.unsplash.com/photo-1580481077195-c3a821a58875?auto=format&fit=crop&w=600&q=80'],
-            categoryNameDe: 'Möbel & Wohnen',
-            locationCity: 'Berlin',
-            locationPlz: '10115',
-            postedDate: 'Vor 5 Tagen',
-            views: 245,
-            favorites: 19,
-            isTop: false,
-          }
-        ];
-      }
 
       // Apply promoted tags
       combined = combined.map((item) => ({

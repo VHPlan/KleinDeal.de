@@ -60,11 +60,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Anzeigen-ID ist erforderlich' }, { status: 400 });
     }
 
-    // Demo listings do not create DB records
-    if (listingId.startsWith('demo-')) {
-      return NextResponse.json({ success: true, isDemo: true });
-    }
-
     const listing = await prisma.listing.findUnique({ where: { id: listingId } });
     if (!listing) {
       return NextResponse.json({ error: 'Anzeige nicht gefunden' }, { status: 404 });

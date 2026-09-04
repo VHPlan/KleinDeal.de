@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { IS_DEMO_MODE_ENABLED } from '@/lib/config';
-import { DEMO_LISTINGS } from '@/lib/demoListings';
 import { requireAuth } from '@/lib/auth';
 import { checkRateLimit, rateLimitResponse, getClientIp } from '@/lib/rateLimit';
 
@@ -67,83 +65,36 @@ export async function GET(req: Request) {
       console.warn('Database listing query notice:', dbErr?.message || dbErr);
     }
 
-    // Real listings always take priority if present
-    if (realListings && realListings.length > 0) {
-      const formattedListings = realListings.map((item) => ({
-        id: item.id,
-        isDemo: false,
-        title: item.title,
-        categorySlug: item.categorySlug,
-        categoryNameDe: item.categoryNameDe,
-        categoryNameEn: item.categoryNameEn,
-        price: item.price,
-        priceType: item.priceType,
-        locationCity: item.locationCity,
-        locationPlz: item.locationPlz,
-        distanceKm: item.distanceKm,
-        postedDate: item.postedDate,
-        condition: item.condition,
-        status: item.status,
-        descriptionDe: item.descriptionDe,
-        descriptionEn: item.descriptionEn,
-        images: JSON.parse(item.images || '[]'),
-        hasVideo: item.hasVideo,
-        videoUrl: item.videoUrl || undefined,
-        seller: {
-          id: item.user.id,
-          name: item.user.name,
-          accountType: item.user.accountType || 'Privat',
-          emailVerified: item.user.emailVerified,
-          memberSince: `${new Date(item.user.createdAt).getFullYear()}`,
-        },
-      }));
-      return NextResponse.json(formattedListings);
-    }
+    const formattedListings = (realListings || []).map((item) => ({
+      id: item.id,
+      isDemo: false,
+      title: item.title,
+      categorySlug: item.categorySlug,
+      categoryNameDe: item.categoryNameDe,
+      categoryNameEn: item.categoryNameEn,
+      price: item.price,
+      priceType: item.priceType,
+      locationCity: item.locationCity,
+      locationPlz: item.locationPlz,
+      distanceKm: item.distanceKm,
+      postedDate: item.postedDate,
+      condition: item.condition,
+      status: item.status,
+      descriptionDe: item.descriptionDe,
+      descriptionEn: item.descriptionEn,
+      images: JSON.parse(item.images || '[]'),
+      hasVideo: item.hasVideo,
+      videoUrl: item.videoUrl || undefined,
+      seller: {
+        id: item.user.id,
+        name: item.user.name,
+        accountType: item.user.accountType || 'Privat',
+        emailVerified: item.user.emailVerified,
+        memberSince: `${new Date(item.user.createdAt).getFullYear()}`,
+      },
+    }));
 
-    // 2. Serve in-memory demo listings ONLY if DB has no active listings and Demo Mode is strictly true
-    if (IS_DEMO_MODE_ENABLED) {
-      let filtered = [...DEMO_LISTINGS];
-
-      if (category) {
-        filtered = filtered.filter((item) => item.categorySlug === category);
-      }
-
-      if (videoOnly) {
-        filtered = filtered.filter((item) => item.hasVideo);
-      }
-
-      if (condition && condition !== 'all') {
-        filtered = filtered.filter((item) => item.condition === condition);
-      }
-
-      if (search) {
-        filtered = filtered.filter(
-          (item) =>
-            item.title.toLowerCase().includes(search) ||
-            item.descriptionDe.toLowerCase().includes(search) ||
-            item.descriptionEn.toLowerCase().includes(search)
-        );
-      }
-
-      if (location) {
-        filtered = filtered.filter(
-          (item) =>
-            item.locationCity.toLowerCase().includes(location) ||
-            item.locationPlz.toLowerCase().includes(location)
-        );
-      }
-
-      // Numerical price sorting
-      if (sortBy === 'priceAsc') {
-        filtered.sort((a, b) => a.price - b.price);
-      } else if (sortBy === 'priceDesc') {
-        filtered.sort((a, b) => b.price - a.price);
-      }
-
-      return NextResponse.json(filtered);
-    }
-
-    return NextResponse.json([]);
+    return NextResponse.json(formattedListings);
   } catch (error: any) {
     console.error('Fetch listings error:', error);
     return NextResponse.json({ error: 'Fehler beim Laden der Anzeigen' }, { status: 500 });

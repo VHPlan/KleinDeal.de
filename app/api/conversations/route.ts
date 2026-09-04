@@ -65,14 +65,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Anzeigen-ID ist erforderlich' }, { status: 400 });
     }
 
-    // Demo listings block conversation creation
-    if (listingId.startsWith('demo-')) {
-      return NextResponse.json(
-        { error: 'Diese Funktion ist für Beispielanzeigen deaktiviert.' },
-        { status: 400 }
-      );
-    }
-
     const listing = await prisma.listing.findUnique({ where: { id: listingId } });
     if (!listing) {
       return NextResponse.json({ error: 'Anzeige nicht gefunden' }, { status: 404 });
