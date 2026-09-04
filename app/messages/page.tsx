@@ -272,7 +272,7 @@ export default function MessagesPage() {
                       : 'bg-[#F6F7F4] border-transparent hover:bg-white'
                   }`}
                 >
-                  <div className="w-10 h-10 rounded-lg bg-[#171A17] text-white font-bold text-sm flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#17A673] to-[#12835B] text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-2xs">
                     {conv.otherUser.name.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -300,7 +300,7 @@ export default function MessagesPage() {
                 {/* Thread Header */}
                 <div className="p-4 border-b border-[#DEE3DE] bg-[#F6F7F4] flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-[#171A17] text-white font-bold text-xs flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#17A673] to-[#12835B] text-white font-bold text-xs flex items-center justify-center shadow-2xs">
                       {currentConv.otherUser.name.charAt(0)}
                     </div>
                     <div>
@@ -316,9 +316,9 @@ export default function MessagesPage() {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => setOfferModalOpen(true)}
-                        className="px-3 py-1.5 bg-[#171A17] text-white text-xs font-bold rounded-lg hover:bg-[#252825] flex items-center gap-1"
+                        className="px-3 py-1.5 bg-[#17A673] text-white text-xs font-bold rounded-lg hover:bg-[#12835B] flex items-center gap-1 shadow-2xs transition-colors"
                       >
-                        <Coins className="w-3.5 h-3.5 text-[#17A673]" />
+                        <Coins className="w-3.5 h-3.5 text-white" />
                         <span>Angebot machen</span>
                       </button>
                       <Link
@@ -333,7 +333,7 @@ export default function MessagesPage() {
 
                 {/* Structured Offers Display Card */}
                 {offers.length > 0 && (
-                  <div className="p-3 bg-[#FAFBFA] border-b border-[#DEE3DE] space-y-2">
+                  <div className="p-3 bg-[#F6F7F4] border-b border-[#DEE3DE] space-y-2">
                     {offers.map((offer) => {
                       const isBuyer = offer.buyerId === user.id;
                       const isSeller = offer.sellerId === user.id;
@@ -347,11 +347,11 @@ export default function MessagesPage() {
                                   ? 'bg-[#E9F7F1] text-[#17A673] border-[#17A673]/30'
                                   : offer.status === 'COUNTERED'
                                   ? 'bg-amber-50 text-amber-800 border-amber-200'
-                                  : 'bg-[#F6F7F4] text-[#171A17] border-[#DEE3DE]'
+                                  : 'bg-[#F6F7F4] text-[#151815] border-[#DEE3DE]'
                               }`}>
                                 {offer.status === 'ACCEPTED' ? 'Angenommen' : offer.status === 'COUNTERED' ? 'Gegenangebot' : offer.status}
                               </span>
-                              <span className="font-bold text-[#171A17]">
+                              <span className="font-bold text-[#151815]">
                                 {offer.status === 'COUNTERED' ? `${offer.counterAmount} € (Gegenangebot)` : `${offer.amount} €`}
                               </span>
                             </div>
@@ -371,7 +371,7 @@ export default function MessagesPage() {
                               </button>
                               <button
                                 onClick={() => setCounterModalOpen(offer.id)}
-                                className="px-2.5 py-1.5 bg-[#171A17] text-white rounded font-bold hover:bg-[#252825]"
+                                className="px-2.5 py-1.5 bg-[#E9F7F1] text-[#17A673] border border-[#17A673]/30 rounded font-bold hover:bg-[#17A673] hover:text-white transition-colors"
                               >
                                 Gegenangebot
                               </button>
@@ -553,7 +553,7 @@ export default function MessagesPage() {
               <button
                 type="button"
                 onClick={() => handleOfferAction(counterModalOpen, 'COUNTER', parseFloat(counterAmount))}
-                className="px-4 py-2 bg-[#171A17] text-white font-bold rounded-lg text-xs hover:bg-[#252825]"
+                className="px-4 py-2 bg-[#17A673] text-white font-bold rounded-lg text-xs hover:bg-[#12835B] shadow-2xs transition-colors"
               >
                 Gegenangebot absenden
               </button>

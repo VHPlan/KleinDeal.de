@@ -104,8 +104,8 @@ export default function Header({ onSearchChange }: HeaderProps) {
                     onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
                     className="flex items-center gap-1.5 sm:gap-2 bg-[#F6F7F4] hover:bg-[#F1F3EE] p-1 sm:pr-3 rounded-xl border border-[#DEE3DE] transition-colors focus:outline-none focus:ring-2 focus:ring-[#17A673]"
                   >
-                    <div className="w-7 h-7 rounded-lg bg-[#171A17] text-white font-bold text-xs flex items-center justify-center">
-                      {user.name.charAt(0)}
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#17A673] to-[#12835B] text-white font-bold text-xs flex items-center justify-center shadow-2xs">
+                      {user.name.charAt(0).toUpperCase()}
                     </div>
                     <span className="hidden sm:inline text-xs font-bold text-[#151815] max-w-[90px] truncate">
                       {user.name.split(' ')[0]}

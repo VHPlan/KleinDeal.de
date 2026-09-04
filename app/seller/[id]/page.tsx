@@ -159,7 +159,7 @@ export default function PublicSellerProfilePage({ params }: { params: { id: stri
         <div className="bg-white border border-[#DEE3DE] rounded-xl p-6 sm:p-8 shadow-subtle mb-8 space-y-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
-              <div className="w-20 h-20 rounded-xl bg-[#171A17] text-white font-black text-3xl flex items-center justify-center">
+              <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-[#17A673] to-[#12835B] text-white font-black text-3xl flex items-center justify-center shadow-sm">
                 {seller.name.charAt(0)}
               </div>
 
@@ -196,10 +196,10 @@ export default function PublicSellerProfilePage({ params }: { params: { id: stri
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={handleToggleFollow}
-                className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors ${
+                className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shadow-2xs ${
                   isFollowing
                     ? 'bg-[#E9F7F1] text-[#17A673] border border-[#17A673]/40'
-                    : 'bg-[#171A17] text-white hover:bg-[#252825]'
+                    : 'bg-[#17A673] text-white hover:bg-[#12835B]'
                 }`}
               >
                 {isFollowing ? <UserCheck className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}

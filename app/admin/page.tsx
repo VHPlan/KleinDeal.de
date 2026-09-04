@@ -217,7 +217,7 @@ export default function AdminDashboardPage() {
             </p>
             <Link
               href="/"
-              className="inline-block bg-[#171A17] text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#252825] transition-colors"
+              className="inline-block bg-[#17A673] text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#12835B] transition-colors shadow-xs"
             >
               Zur Startseite
             </Link>
@@ -236,13 +236,13 @@ export default function AdminDashboardPage() {
         {/* Header Title */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#171A17] text-[#17A673] flex items-center justify-center font-black shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-[#E9F7F1] border border-[#17A673]/30 text-[#17A673] flex items-center justify-center font-black shadow-2xs">
               <Shield className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-black text-[#171A17] tracking-tight">Admin & Moderation Panel</h1>
-                <span className="text-[10px] uppercase font-black bg-[#17A673] text-white px-2 py-0.5 rounded">
+                <h1 className="text-2xl font-black text-[#151815] tracking-tight">Admin & Moderation Panel</h1>
+                <span className="text-[10px] uppercase font-black bg-[#17A673] text-white px-2 py-0.5 rounded shadow-2xs">
                   Live
                 </span>
               </div>
@@ -401,7 +401,7 @@ export default function AdminDashboardPage() {
                             {/* User details */}
                             <td className="py-3.5 px-4">
                               <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-xl bg-[#171A17] text-white font-black text-xs flex items-center justify-center shrink-0">
+                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#17A673] to-[#12835B] text-white font-black text-xs flex items-center justify-center shrink-0 shadow-2xs">
                                   {u.name.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
@@ -454,7 +454,7 @@ export default function AdminDashboardPage() {
                             {/* Role */}
                             <td className="py-3.5 px-4">
                               {u.role === 'ADMIN' && (
-                                <span className="inline-flex items-center gap-1 text-[11px] font-black text-white bg-[#171A17] px-2.5 py-0.5 rounded-md border border-[#17A673]/40 shadow-xs">
+                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#17A673] bg-[#E9F7F1] px-2.5 py-0.5 rounded-md border border-[#17A673]/30 shadow-2xs">
                                   <Shield className="w-3 h-3 text-[#17A673]" />
                                   <span>Admin</span>
                                 </span>

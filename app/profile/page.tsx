@@ -345,10 +345,10 @@ export default function ProfilePage() {
         </Link>
 
         {/* Dashboard Header */}
-        <div className="bg-white border border-[#DEE3DE] rounded-xl p-6 shadow-subtle mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="bg-white border border-[#DEE3DE] rounded-2xl p-6 shadow-subtle mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4 text-center sm:text-left">
-            <div className="w-16 h-16 rounded-xl bg-[#171A17] text-white font-black text-2xl flex items-center justify-center">
-              {user.name.charAt(0)}
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#17A673] to-[#12835B] text-white font-black text-2xl flex items-center justify-center shadow-sm">
+              {user.name.charAt(0).toUpperCase()}
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
@@ -357,7 +357,7 @@ export default function ProfilePage() {
                   {user.accountType || 'Privat'}
                 </span>
                 {(user.role === 'ADMIN' || user.role === 'MODERATOR') && (
-                  <span className="text-[11px] font-black text-white bg-gradient-to-r from-[#171A17] to-[#2B302C] px-3 py-1 rounded-full border border-[#17A673]/40 shadow-xs flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold text-[#17A673] bg-[#E9F7F1] px-3 py-1 rounded-full border border-[#17A673]/30 shadow-2xs flex items-center gap-1.5">
                     <ShieldCheck className="w-3.5 h-3.5 text-[#17A673]" />
                     <span>{user.role === 'ADMIN' ? 'Site Administrator' : 'Moderator'}</span>
                   </span>
@@ -371,15 +371,15 @@ export default function ProfilePage() {
             {(user.role === 'ADMIN' || user.role === 'MODERATOR') && (
               <Link
                 href="/admin"
-                className="text-xs font-extrabold bg-[#171A17] text-[#17A673] hover:bg-[#252825] px-4 py-2.5 rounded-xl border border-[#17A673]/40 flex items-center gap-1.5 transition-all shadow-xs"
+                className="text-xs font-bold bg-[#E9F7F1] hover:bg-[#17A673] text-[#17A673] hover:text-white px-4 py-2.5 rounded-xl border border-[#17A673]/30 flex items-center gap-1.5 transition-all shadow-2xs"
               >
-                <ShieldCheck className="w-4 h-4 text-[#17A673]" />
+                <ShieldCheck className="w-4 h-4" />
                 <span>Admin-Portal</span>
               </Link>
             )}
             <button
               onClick={logout}
-              className="text-xs font-bold text-[#D94C3D] hover:bg-rose-50 px-4 py-2 rounded-lg border border-rose-200 flex items-center gap-1.5 transition-colors"
+              className="text-xs font-bold text-[#D94C3D] hover:bg-rose-50 px-4 py-2.5 rounded-xl border border-rose-200 flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Abmelden</span>
@@ -406,10 +406,10 @@ export default function ProfilePage() {
                 key={tab.id}
                 type="button"
                 onClick={() => handleTabChange(tab.id)}
-                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg border transition-colors whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl border transition-all whitespace-nowrap cursor-pointer ${
                   activeTab === tab.id
-                    ? 'bg-[#171A17] text-white border-[#171A17]'
-                    : 'bg-white text-[#68716A] border-[#DEE3DE] hover:bg-[#F6F7F4]'
+                    ? 'bg-[#17A673] text-white border-[#17A673] shadow-xs'
+                    : 'bg-white text-[#68716A] border-[#DEE3DE] hover:bg-[#F6F7F4] hover:text-[#151815]'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -420,14 +420,14 @@ export default function ProfilePage() {
         </div>
 
         {message && (
-          <div className="bg-[#E9F7F1] border border-[#17A673] text-[#17A673] p-4 rounded-xl text-xs font-bold mb-6 flex items-center gap-2">
+          <div className="bg-[#E9F7F1] border border-[#17A673]/30 text-[#17A673] p-4 rounded-xl text-xs font-bold mb-6 flex items-center gap-2 shadow-2xs animate-fadeIn">
             <CheckCircle2 className="w-4 h-4" />
             <span>{message}</span>
           </div>
         )}
 
         {error && (
-          <div className="bg-rose-50 border border-rose-200 text-[#D94C3D] p-4 rounded-xl text-xs font-semibold mb-6">
+          <div className="bg-rose-50 border border-rose-200 text-[#D94C3D] p-4 rounded-xl text-xs font-semibold mb-6 animate-fadeIn">
             {error}
           </div>
         )}
@@ -436,24 +436,24 @@ export default function ProfilePage() {
         {activeTab === 'overview' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {(user.role === 'ADMIN' || user.role === 'MODERATOR') && (
-              <div className="md:col-span-3 bg-gradient-to-r from-[#171A17] via-[#202421] to-[#171A17] text-white border border-[#17A673]/40 rounded-2xl p-6 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="md:col-span-3 bg-gradient-to-br from-[#E9F7F1] via-white to-[#F6F7F4] text-[#151815] border border-[#17A673]/30 rounded-2xl p-6 shadow-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-[#17A673]/20 border border-[#17A673]/50 flex items-center justify-center text-[#17A673] shrink-0">
+                  <div className="w-12 h-12 rounded-xl bg-white border border-[#17A673]/30 flex items-center justify-center text-[#17A673] shadow-2xs shrink-0">
                     <ShieldCheck className="w-6 h-6 text-[#17A673]" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="font-extrabold text-base tracking-tight text-white">Administrator-Zugang aktiv</h3>
-                      <span className="text-[10px] uppercase font-black bg-[#17A673] text-white px-2 py-0.5 rounded">Admin-Status</span>
+                      <h3 className="font-extrabold text-base tracking-tight text-[#151815]">Administrator-Zugang aktiv</h3>
+                      <span className="text-[10px] uppercase font-bold bg-[#17A673] text-white px-2 py-0.5 rounded">Admin-Status</span>
                     </div>
-                    <p className="text-xs text-[#DEE3DE] mt-1">
+                    <p className="text-xs text-[#68716A] mt-1">
                       Du hast vollen Zugriff auf das Verwaltungsportal: Benutzerverwaltung, Rollenvergabe, Meldungen & Sicherheitsüberwachung.
                     </p>
                   </div>
                 </div>
                 <Link
                   href="/admin"
-                  className="bg-[#17A673] hover:bg-[#12835B] text-white text-xs font-bold px-5 py-3 rounded-xl shadow-sm transition-all shrink-0 flex items-center gap-2"
+                  className="bg-[#17A673] hover:bg-[#12835B] text-white text-xs font-bold px-5 py-3 rounded-xl shadow-xs transition-all shrink-0 flex items-center gap-2 cursor-pointer"
                 >
                   <span>Zum Admin-Panel</span>
                   <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
@@ -600,13 +600,13 @@ export default function ProfilePage() {
                         {isBuyer && tx.status !== 'COMPLETED' && (
                           <div>
                             {handoverGeneratedCode[tx.id] ? (
-                              <div className="bg-[#171A17] text-[#17A673] font-mono text-sm px-4 py-2 rounded-lg font-bold">
+                              <div className="bg-[#E9F7F1] border border-[#17A673]/30 text-[#17A673] font-mono text-sm px-4 py-2 rounded-lg font-bold shadow-2xs">
                                 Code: {handoverGeneratedCode[tx.id]}
                               </div>
                             ) : (
                               <button
                                 onClick={() => handleGenerateHandoverCode(tx.id)}
-                                className="px-3 py-2 bg-[#17A673] text-white text-xs font-bold rounded-lg hover:bg-[#12835B]"
+                                className="px-3 py-2 bg-[#17A673] text-white text-xs font-bold rounded-lg hover:bg-[#12835B] shadow-2xs transition-colors"
                               >
                                 Übergabecode anzeigen
                               </button>
@@ -627,7 +627,7 @@ export default function ProfilePage() {
                             />
                             <button
                               onClick={() => handleVerifyHandoverCode(tx.id)}
-                              className="px-3 py-1.5 bg-[#171A17] text-white text-xs font-bold rounded-lg hover:bg-[#252825]"
+                              className="px-3 py-1.5 bg-[#17A673] text-white text-xs font-bold rounded-lg hover:bg-[#12835B] shadow-2xs transition-colors"
                             >
                               Bestätigen
                             </button>
@@ -685,7 +685,7 @@ export default function ProfilePage() {
               {!twoFactorEnabled && !twoFactorSetup && (
                 <button
                   onClick={handleSetup2FA}
-                  className="px-4 py-2 bg-[#171A17] text-white text-xs font-bold rounded-lg hover:bg-[#252825]"
+                  className="px-4 py-2 bg-[#17A673] text-white text-xs font-bold rounded-lg hover:bg-[#12835B] shadow-2xs transition-colors"
                 >
                   2FA jetzt einrichten
                 </button>
@@ -693,8 +693,8 @@ export default function ProfilePage() {
 
               {twoFactorSetup && (
                 <div className="p-4 bg-[#FAFBFA] border border-[#DEE3DE] rounded-lg space-y-4 text-xs">
-                  <p className="font-semibold text-[#171A17]">1. Scanne den QR-Code mit deiner Authenticator App oder trage den Schlüssel manuell ein:</p>
-                  <div className="font-mono bg-white p-2 border rounded text-xs select-all text-[#171A17]">
+                  <p className="font-semibold text-[#151815]">1. Scanne den QR-Code mit deiner Authenticator App oder trage den Schlüssel manuell ein:</p>
+                  <div className="font-mono bg-white p-2 border rounded text-xs select-all text-[#151815]">
                     {twoFactorSetup.secret}
                   </div>
                   <div>
@@ -710,7 +710,7 @@ export default function ProfilePage() {
                       />
                       <button
                         onClick={handleEnable2FA}
-                        className="px-4 py-1.5 bg-[#17A673] text-white font-bold rounded hover:bg-[#12835B]"
+                        className="px-4 py-1.5 bg-[#17A673] text-white font-bold rounded hover:bg-[#12835B] transition-colors"
                       >
                         Aktivieren
                       </button>
@@ -771,7 +771,7 @@ export default function ProfilePage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-[#171A17] hover:bg-[#292E29] text-white font-bold text-xs px-6 py-3 rounded-lg flex items-center gap-2"
+                  className="bg-[#17A673] hover:bg-[#12835B] text-white font-bold text-xs px-6 py-3 rounded-lg flex items-center gap-2 shadow-2xs transition-colors"
                 >
                   <Lock className="w-4 h-4" />
                   <span>Passwort aktualisieren</span>
