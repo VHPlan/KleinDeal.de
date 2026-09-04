@@ -20,7 +20,8 @@ import {
   Lock,
   MessageSquare,
   Heart,
-  Settings
+  Settings,
+  ShieldCheck
 } from 'lucide-react';
 
 import { useRouter } from 'next/navigation';
@@ -133,6 +134,17 @@ export default function Header({ onSearchChange }: HeaderProps) {
                       </Link>
 
                       <div className="my-1 border-t border-[#DEE3DE]/60" />
+
+                      {(user.role === 'ADMIN' || user.role === 'MODERATOR') && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setIsUserDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-[#17A673] bg-[#E9F7F1] hover:bg-[#d8f4e8] rounded-xl transition-colors group mb-1 border border-[#17A673]/30"
+                        >
+                          <ShieldCheck className="w-4 h-4 text-[#17A673]" />
+                          <span>Admin-Portal</span>
+                        </Link>
+                      )}
 
                       <Link
                         href="/profile?tab=profile"

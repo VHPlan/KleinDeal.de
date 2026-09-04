@@ -72,6 +72,8 @@ export async function POST(req: Request) {
       name: user.name,
       email: user.email,
       accountType: user.accountType,
+      role: user.role,
+      status: user.status,
       city: user.city,
       plz: user.plz,
       phone: user.phone,

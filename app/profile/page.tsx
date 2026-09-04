@@ -351,14 +351,15 @@ export default function ProfilePage() {
               {user.name.charAt(0)}
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-xl font-bold text-[#151815]">{user.name}</h1>
                 <span className="text-[10px] font-bold text-[#17A673] bg-[#E9F7F1] px-2.5 py-0.5 rounded-md border border-[#17A673]/30">
                   {user.accountType || 'Privat'}
                 </span>
-                {user.role === 'ADMIN' && (
-                  <span className="text-[10px] font-bold text-[#D94C3D] bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
-                    Admin
+                {(user.role === 'ADMIN' || user.role === 'MODERATOR') && (
+                  <span className="text-[11px] font-black text-white bg-gradient-to-r from-[#171A17] to-[#2B302C] px-3 py-1 rounded-full border border-[#17A673]/40 shadow-xs flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#17A673]" />
+                    <span>{user.role === 'ADMIN' ? 'Site Administrator' : 'Moderator'}</span>
                   </span>
                 )}
               </div>
@@ -367,12 +368,13 @@ export default function ProfilePage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {user.role === 'ADMIN' && (
+            {(user.role === 'ADMIN' || user.role === 'MODERATOR') && (
               <Link
                 href="/admin"
-                className="text-xs font-bold bg-[#171A17] text-[#17A673] hover:bg-[#252825] px-4 py-2 rounded-lg border border-[#171A17] flex items-center gap-1.5 transition-colors"
+                className="text-xs font-extrabold bg-[#171A17] text-[#17A673] hover:bg-[#252825] px-4 py-2.5 rounded-xl border border-[#17A673]/40 flex items-center gap-1.5 transition-all shadow-xs"
               >
-                <span>Admin Portal</span>
+                <ShieldCheck className="w-4 h-4 text-[#17A673]" />
+                <span>Admin-Portal</span>
               </Link>
             )}
             <button
@@ -433,6 +435,32 @@ export default function ProfilePage() {
         {/* TAB: OVERVIEW */}
         {activeTab === 'overview' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {(user.role === 'ADMIN' || user.role === 'MODERATOR') && (
+              <div className="md:col-span-3 bg-gradient-to-r from-[#171A17] via-[#202421] to-[#171A17] text-white border border-[#17A673]/40 rounded-2xl p-6 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-[#17A673]/20 border border-[#17A673]/50 flex items-center justify-center text-[#17A673] shrink-0">
+                    <ShieldCheck className="w-6 h-6 text-[#17A673]" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-extrabold text-base tracking-tight text-white">Administrator-Zugang aktiv</h3>
+                      <span className="text-[10px] uppercase font-black bg-[#17A673] text-white px-2 py-0.5 rounded">Admin-Status</span>
+                    </div>
+                    <p className="text-xs text-[#DEE3DE] mt-1">
+                      Du hast vollen Zugriff auf das Verwaltungsportal: Benutzerverwaltung, Rollenvergabe, Meldungen & Sicherheitsüberwachung.
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/admin"
+                  className="bg-[#17A673] hover:bg-[#12835B] text-white text-xs font-bold px-5 py-3 rounded-xl shadow-sm transition-all shrink-0 flex items-center gap-2"
+                >
+                  <span>Zum Admin-Panel</span>
+                  <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
+                </Link>
+              </div>
+            )}
+
             <div className="bg-white border border-[#DEE3DE] rounded-xl p-6 shadow-subtle space-y-2">
               <span className="text-[10px] font-bold text-[#68716A] uppercase tracking-wider block">Konto-Status</span>
               <span className="text-lg font-bold text-[#17A673] flex items-center gap-1">
