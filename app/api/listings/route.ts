@@ -59,6 +59,12 @@ export async function GET(req: Request) {
               // Strictly exclude email and phone from public search listings
             },
           },
+          _count: {
+            select: {
+              views: true,
+              favorites: true,
+            },
+          },
         },
       });
     } catch (dbErr: any) {
@@ -85,6 +91,9 @@ export async function GET(req: Request) {
       images: JSON.parse(item.images || '[]'),
       hasVideo: item.hasVideo,
       videoUrl: item.videoUrl || undefined,
+      views: item._count?.views ?? 0,
+      viewsCount: item._count?.views ?? 0,
+      favoriteCount: item._count?.favorites ?? 0,
       seller: {
         id: item.user.id,
         name: item.user.name,

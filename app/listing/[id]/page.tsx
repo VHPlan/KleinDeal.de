@@ -359,11 +359,11 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
                     )}
                   </div>
 
-                  {/* Views & Favorites Count Metrics */}
+                    {/* Views & Favorites Count Metrics */}
                   <div className="flex flex-wrap items-center gap-2.5 text-xs text-[#68716A] font-medium">
                     <span className="flex items-center gap-1.5 text-[#151815] font-semibold bg-[#F6F7F4] px-2.5 py-1 rounded-lg border border-[#DEE3DE]">
                       <Eye className="w-3.5 h-3.5 text-[#17A673]" />
-                      <span>{listing.views || (listing as any).viewsCount || 142} Aufrufe</span>
+                      <span>{(listing as any).viewsCount ?? listing.views ?? 0} Aufrufe</span>
                     </span>
                     <span className="flex items-center gap-1.5 text-[#151815] font-semibold bg-[#F6F7F4] px-2.5 py-1 rounded-lg border border-[#DEE3DE]">
                       <Heart className="w-3.5 h-3.5 text-[#D94C3D] fill-[#D94C3D]/20" />

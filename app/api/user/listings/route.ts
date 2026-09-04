@@ -10,6 +10,14 @@ export async function GET(req: Request) {
     const listings = await prisma.listing.findMany({
       where: { userId: user!.id },
       orderBy: { createdAt: 'desc' },
+      include: {
+        _count: {
+          select: {
+            views: true,
+            favorites: true,
+          },
+        },
+      },
     });
 
     const formatted = listings.map((item) => ({
@@ -25,6 +33,9 @@ export async function GET(req: Request) {
       hasVideo: item.hasVideo,
       postedDate: item.postedDate,
       createdAt: item.createdAt,
+      views: item._count?.views ?? 0,
+      viewsCount: item._count?.views ?? 0,
+      favorites: item._count?.favorites ?? 0,
     }));
 
     return NextResponse.json(formatted);

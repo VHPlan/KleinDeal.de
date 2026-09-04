@@ -249,7 +249,10 @@ export default function MyListingsPage() {
               >
                 {/* Left: Thumbnail & Info */}
                 <div className="flex items-start sm:items-center gap-4 flex-1 min-w-0">
-                  <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-[#F6F7F4] shrink-0 border border-[#DEE3DE]">
+                  <Link
+                    href={`/listing/${item.id}`}
+                    className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-[#F6F7F4] shrink-0 border border-[#DEE3DE] hover:opacity-90 transition-opacity block cursor-pointer"
+                  >
                     <Image
                       src={item.images?.[0] || 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=400&q=80'}
                       alt={item.title}
@@ -262,7 +265,7 @@ export default function MyListingsPage() {
                         <span>TOP</span>
                       </div>
                     )}
-                  </div>
+                  </Link>
 
                   <div className="space-y-1.5 min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
@@ -282,9 +285,9 @@ export default function MyListingsPage() {
                       <span className="text-[11px] text-[#68716A]">{item.postedDate}</span>
                     </div>
 
-                    <h3 className="font-extrabold text-sm sm:text-base text-[#151815] truncate">
+                    <Link href={`/listing/${item.id}`} className="block font-extrabold text-sm sm:text-base text-[#151815] hover:text-[#17A673] transition-colors truncate">
                       {item.title}
-                    </h3>
+                    </Link>
 
                     <div className="flex items-center gap-2 font-black text-base text-[#151815]">
                       <span>{item.price.toLocaleString('de-DE')} €</span>
@@ -297,11 +300,11 @@ export default function MyListingsPage() {
                     <div className="flex items-center gap-4 text-xs font-semibold text-[#68716A] pt-1">
                       <span className="flex items-center gap-1.5 text-[#151815] bg-[#F6F7F4] px-2.5 py-1 rounded-lg border border-[#DEE3DE]">
                         <Eye className="w-3.5 h-3.5 text-[#17A673]" />
-                        <span>{item.views} Aufrufe</span>
+                        <span>{item.views ?? 0} Aufrufe</span>
                       </span>
                       <span className="flex items-center gap-1.5 text-[#151815] bg-[#F6F7F4] px-2.5 py-1 rounded-lg border border-[#DEE3DE]">
                         <Heart className="w-3.5 h-3.5 text-[#D94C3D] fill-[#D94C3D]" />
-                        <span>{item.favorites} gemerkt</span>
+                        <span>{item.favorites ?? 0} gemerkt</span>
                       </span>
                     </div>
                   </div>

@@ -738,7 +738,10 @@ export default function ProfilePage() {
                   return (
                     <div key={item.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="flex items-center gap-3.5">
-                        <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-[#F6F7F4] border border-[#DEE3DE] shrink-0">
+                        <Link 
+                          href={`/listing/${item.id}`}
+                          className="relative w-16 h-16 rounded-xl overflow-hidden bg-[#F6F7F4] border border-[#DEE3DE] shrink-0 block hover:opacity-80 transition-opacity cursor-pointer"
+                        >
                           <Image
                             src={imageSrc}
                             alt={item.title || 'Anzeige'}
@@ -746,7 +749,7 @@ export default function ProfilePage() {
                             className="object-cover"
                             unoptimized={imageSrc.startsWith('data:') || imageSrc.startsWith('blob:')}
                           />
-                        </div>
+                        </Link>
                         <div>
                           <div className="flex items-center gap-2 mb-1">
                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${

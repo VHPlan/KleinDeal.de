@@ -65,9 +65,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       descriptionEn: item.descriptionEn,
       images: JSON.parse(item.images || '[]'),
       hasVideo: item.hasVideo,
-      videoUrl: item.videoUrl || undefined,
-      views: viewsTotal + 1,
-      viewsCount: viewsTotal + 1,
+      views: viewsTotal,
+      viewsCount: viewsTotal,
       favoritesCount: favoritesTotal,
       seller: {
         id: item.user.id,

@@ -31,8 +31,11 @@ export default function ListingCard({ listing, onOpenVideo }: ListingCardProps) 
   return (
     <div className="bg-white border border-[#DEE3DE] rounded-xl overflow-hidden hover:border-[#17A673] hover:shadow-restrained transition-all flex flex-col group relative">
       
-      {/* Image Container with aspect ratio 4:3 */}
-      <div className="relative aspect-[4/3] w-full bg-[#F6F7F4] overflow-hidden border-b border-[#DEE3DE]">
+      {/* Image Container with aspect ratio 4:3 (Clickable to detail page) */}
+      <Link 
+        href={`/listing/${listing.id}`}
+        className="block relative aspect-[4/3] w-full bg-[#F6F7F4] overflow-hidden border-b border-[#DEE3DE] cursor-pointer"
+      >
         <Image
           src={imgSrc}
           alt={title}
@@ -55,7 +58,7 @@ export default function ListingCard({ listing, onOpenVideo }: ListingCardProps) 
               }
             }}
             aria-label={t.hasVideoBadge}
-            className="absolute top-2 left-2 bg-[#D94C3D] text-white text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm hover:bg-[#b8372b] transition-colors focus:outline-none focus:ring-2 focus:ring-[#17A673]"
+            className="absolute top-2 left-2 bg-[#D94C3D] text-white text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm hover:bg-[#b8372b] transition-colors focus:outline-none focus:ring-2 focus:ring-[#17A673] z-10"
           >
             <Play className="w-2.5 h-2.5 fill-white" />
             <span>{t.hasVideoBadge}</span>
@@ -64,7 +67,7 @@ export default function ListingCard({ listing, onOpenVideo }: ListingCardProps) 
 
         {/* Optional TOP Highlight Badge */}
         {((listing as any).isFeatured || (listing as any).isTop) && (
-          <span className="absolute top-2 left-2 bg-amber-400 text-[#151815] text-[10px] font-black px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
+          <span className="absolute top-2 left-2 bg-amber-400 text-[#151815] text-[10px] font-black px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm pointer-events-none">
             <Sparkles className="w-2.5 h-2.5 fill-[#151815]" />
             <span>TOP</span>
           </span>
@@ -89,7 +92,7 @@ export default function ListingCard({ listing, onOpenVideo }: ListingCardProps) 
             });
           }}
           aria-label={isFavorited ? 'Anzeige aus Favoriten entfernen' : 'Anzeige zu Favoriten hinzufügen'}
-          className={`absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center backdrop-blur-md transition-colors focus:outline-none focus:ring-2 focus:ring-[#17A673] ${
+          className={`absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center backdrop-blur-md transition-colors focus:outline-none focus:ring-2 focus:ring-[#17A673] z-10 ${
             isFavorited ? 'bg-[#D94C3D] text-white shadow-sm' : 'bg-white/90 text-[#151815] border border-[#DEE3DE] hover:bg-white'
           }`}
         >
@@ -97,7 +100,7 @@ export default function ListingCard({ listing, onOpenVideo }: ListingCardProps) 
         </button>
 
         {/* Price Tag Overlay */}
-        <div className="absolute bottom-2 left-2 bg-white px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg border border-[#DEE3DE] shadow-subtle">
+        <div className="absolute bottom-2 left-2 bg-white px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg border border-[#DEE3DE] shadow-subtle pointer-events-none">
           {listing.priceType === 'free' ? (
             <span className="text-[#17A673] font-black text-[11px] sm:text-xs uppercase tracking-wide">
               {t.free}
@@ -117,11 +120,11 @@ export default function ListingCard({ listing, onOpenVideo }: ListingCardProps) 
         </div>
 
         {/* Views Count Overlay */}
-        <div className="absolute bottom-2 right-2 bg-black/50 backdrop-blur-sm text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-2xs">
+        <div className="absolute bottom-2 right-2 bg-black/50 backdrop-blur-sm text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-2xs pointer-events-none">
           <Eye className="w-2.5 h-2.5" />
-          <span>{listing.views || 48}</span>
+          <span>{(listing as any).viewsCount ?? listing.views ?? 0}</span>
         </div>
-      </div>
+      </Link>
 
       {/* Content Container (Entire area links to detail page) */}
       <Link 
