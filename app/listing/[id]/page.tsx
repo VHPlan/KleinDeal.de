@@ -203,6 +203,30 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
     <main className="min-h-screen bg-[#F6F7F4] pb-24">
       <Header />
 
+      {listing && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Product',
+              name: listing.title,
+              description: listing.descriptionDe || listing.descriptionEn || listing.title,
+              image: listing.images?.[0] || 'https://kleindeal.de/icon.svg',
+              offers: {
+                '@type': 'Offer',
+                priceCurrency: 'EUR',
+                price: listing.price,
+                availability: 'https://schema.org/InStock',
+                itemCondition: listing.condition === 'Neu' 
+                  ? 'https://schema.org/NewCondition' 
+                  : 'https://schema.org/UsedCondition',
+              },
+            }),
+          }}
+        />
+      )}
+
       <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         
 

@@ -1,23 +1,22 @@
-import type { MetadataRoute } from 'next';
+import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const isStaging = process.env.APP_ENV === 'staging';
-
-  if (isStaging) {
-    return {
-      rules: {
-        userAgent: '*',
-        disallow: '/',
-      },
-    };
-  }
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://kleindeal.de';
 
   return {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/api/', '/admin/', '/profile/', '/messages/', '/my-listings/'],
+      disallow: [
+        '/admin',
+        '/admin/*',
+        '/api/*',
+        '/messages',
+        '/my-listings',
+        '/profile',
+        '/staging-login',
+      ],
     },
-    sitemap: 'https://kleindeal.de/sitemap.xml',
+    sitemap: `${baseUrl}/sitemap.xml`,
   };
 }

@@ -63,6 +63,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [locationQuery, setLocationQuery] = useState('');
   const [conditionFilter, setConditionFilter] = useState<string>('all');
+  const [radiusFilter, setRadiusFilter] = useState<string>('all');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [deliveryFilter, setDeliveryFilter] = useState<'all' | 'abholung' | 'versand'>('all');
@@ -132,6 +133,7 @@ export default function HomePage() {
     });
 
   const activeFilterCount = (conditionFilter !== 'all' ? 1 : 0) + 
+    (radiusFilter !== 'all' ? 1 : 0) +
     (minPrice ? 1 : 0) + 
     (maxPrice ? 1 : 0) + 
     (deliveryFilter !== 'all' ? 1 : 0) + 
@@ -143,13 +145,14 @@ export default function HomePage() {
     setSearchQuery('');
     setLocationQuery('');
     setConditionFilter('all');
+    setRadiusFilter('all');
     setMinPrice('');
     setMaxPrice('');
     setDeliveryFilter('all');
     setVerifiedOnly(false);
   };
 
-  const isFilteringActive = selectedCategory || selectedSubcategory || searchQuery || locationQuery || conditionFilter !== 'all' || minPrice !== '' || maxPrice !== '' || deliveryFilter !== 'all' || verifiedOnly;
+  const isFilteringActive = selectedCategory || selectedSubcategory || searchQuery || locationQuery || conditionFilter !== 'all' || radiusFilter !== 'all' || minPrice !== '' || maxPrice !== '' || deliveryFilter !== 'all' || verifiedOnly;
 
   return (
     <main className="min-h-screen bg-white pb-16">
@@ -327,7 +330,26 @@ export default function HomePage() {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Location Radius */}
+                <div>
+                  <label className="block text-[11px] font-bold text-[#68716A] mb-1.5 flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-[#17A673]" />
+                    <span>Umkreis</span>
+                  </label>
+                  <select
+                    value={radiusFilter}
+                    onChange={(e) => setRadiusFilter(e.target.value)}
+                    className="w-full bg-white border border-[#DEE3DE] focus:border-[#17A673] rounded-xl px-3 py-2 text-xs font-semibold text-[#151815] outline-none cursor-pointer"
+                  >
+                    <option value="all">Ganz Deutschland</option>
+                    <option value="10">+ 10 km Umkreis</option>
+                    <option value="25">+ 25 km Umkreis</option>
+                    <option value="50">+ 50 km Umkreis</option>
+                    <option value="100">+ 100 km Umkreis</option>
+                  </select>
+                </div>
+
                 {/* Price Range */}
                 <div>
                   <label className="block text-[11px] font-bold text-[#68716A] mb-1.5">

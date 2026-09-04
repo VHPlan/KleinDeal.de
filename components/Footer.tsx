@@ -150,17 +150,17 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2.5 text-[#68716A] text-xs font-medium">
               <li>
-                <Link href="/sicher-handeln" className="hover:text-[#17A673] transition-colors">
+                <Link href="/impressum" className="hover:text-[#17A673] transition-colors">
                   {t.footerImprint || 'Impressum'}
                 </Link>
               </li>
               <li>
-                <Link href="/sicher-handeln" className="hover:text-[#17A673] transition-colors">
+                <Link href="/datenschutz" className="hover:text-[#17A673] transition-colors">
                   {t.footerPrivacy || 'Datenschutzerklärung'}
                 </Link>
               </li>
               <li>
-                <Link href="/sicher-handeln" className="hover:text-[#17A673] transition-colors">
+                <Link href="/agb" className="hover:text-[#17A673] transition-colors">
                   {t.footerTerms || 'AGB & Nutzungsbedingungen'}
                 </Link>
               </li>
@@ -182,11 +182,11 @@ export default function Footer() {
           </div>
 
           <div className="flex items-center gap-4 font-semibold text-[11px]">
-            <Link href="/sicher-handeln" className="hover:text-[#17A673] transition-colors">Impressum</Link>
+            <Link href="/impressum" className="hover:text-[#17A673] transition-colors">Impressum</Link>
             <span>•</span>
-            <Link href="/sicher-handeln" className="hover:text-[#17A673] transition-colors">Datenschutz</Link>
+            <Link href="/datenschutz" className="hover:text-[#17A673] transition-colors">Datenschutz</Link>
             <span>•</span>
-            <Link href="/sicher-handeln" className="hover:text-[#17A673] transition-colors">AGB</Link>
+            <Link href="/agb" className="hover:text-[#17A673] transition-colors">AGB</Link>
             <span>•</span>
             <span className="text-[#17A673] font-bold">Deutschland</span>
           </div>

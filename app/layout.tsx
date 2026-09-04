@@ -8,6 +8,7 @@ import { ToastProvider } from '@/context/ToastContext';
 import { FavoritesProvider } from '@/context/FavoritesContext';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import Footer from '@/components/Footer';
+import CookieConsent from '@/components/CookieConsent';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -63,6 +64,7 @@ export default function RootLayout({
                 </div>
                 <Footer />
                 <MobileBottomNav />
+                <CookieConsent />
               </FavoritesProvider>
             </ToastProvider>
           </LanguageProvider>
