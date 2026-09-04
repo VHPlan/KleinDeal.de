@@ -66,7 +66,7 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
   const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
 
   // Real Seller Reviews State
-  const [sellerReviews, setSellerReviews] = useState<{ averageRating: number | null; reviewCount: number } | null>(null);
+  const [sellerReviews, setSellerReviews] = useState<any>(null);
 
   // Live Views & Favorites Counters
   const [favoritesCount, setFavoritesCount] = useState(8);
@@ -101,9 +101,9 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
             setFavoritesCount(data.favoritesCount);
           }
 
-          // Fetch real seller reviews
+          // Fetch real seller reviews & reputation
           const targetSellerId = data.seller?.id || data.userId;
-          if (targetSellerId && !targetSellerId.startsWith('seller-')) {
+          if (targetSellerId) {
             try {
               const revRes = await fetch(`/api/reviews?targetId=${targetSellerId}`);
               if (revRes.ok) {
@@ -660,17 +660,30 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
                 <div className="flex items-center justify-between">
                   <span className="text-[#68716A]">Bewertung</span>
                   {sellerReviews && sellerReviews.reviewCount > 0 ? (
-                    <div className="flex items-center gap-1 text-[#151815] font-bold">
+                    <Link
+                      href={`/seller/${listing.seller?.id || (listing as any).userId}?tab=reviews`}
+                      className="flex items-center gap-1 text-[#151815] font-bold hover:text-[#17A673] transition-colors"
+                      title="Alle Bewertungen ansehen"
+                    >
                       <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                       <span>{sellerReviews.averageRating}</span>
-                      <span className="text-[#68716A] font-normal">({sellerReviews.reviewCount} {sellerReviews.reviewCount === 1 ? 'Bewertung' : 'Bewertungen'})</span>
-                    </div>
+                      <span className="text-[#68716A] font-normal underline">({sellerReviews.reviewCount})</span>
+                    </Link>
                   ) : (
                     <span className="text-[11px] font-semibold text-[#68716A]">
                       Neu auf KleinDeal (0 Bewertungen)
                     </span>
                   )}
                 </div>
+
+                {sellerReviews?.recommendationRate && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#68716A]">Empfehlung</span>
+                    <span className="font-bold text-[#17A673] bg-[#E9F7F1] px-2 py-0.5 rounded-md border border-[#17A673]/20 text-[11px]">
+                      👍 {sellerReviews.recommendationRate}% positiv
+                    </span>
+                  </div>
+                )}
 
                 <div className="flex items-center justify-between">
                   <span className="text-[#68716A]">Antwortzeit</span>
@@ -690,12 +703,28 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
                       E-Mail unbestätigt
                     </span>
                   )}
+                  {sellerReviews?.badges?.isTopRated && (
+                    <span className="bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-lg font-black flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 fill-amber-500 text-amber-500" /> Top-Bewertet
+                    </span>
+                  )}
                   {listing.seller?.accountType && (
                     <span className="bg-[#F6F7F4] text-[#151815] px-2.5 py-1 rounded-lg border border-[#DEE3DE] font-bold">
                       {listing.seller.accountType}
                     </span>
                   )}
                 </div>
+
+                {sellerReviews && sellerReviews.reviewCount > 0 && (
+                  <div className="pt-2">
+                    <Link
+                      href={`/seller/${listing.seller?.id || (listing as any).userId}?tab=reviews`}
+                      className="text-[11px] font-bold text-[#17A673] hover:underline flex items-center gap-1"
+                    >
+                      <span>Alle {sellerReviews.reviewCount} Kundenbewertungen lesen →</span>
+                    </Link>
+                  </div>
+                )}
               </div>
 
               <hr className="border-[#DEE3DE]" />
