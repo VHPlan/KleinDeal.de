@@ -1,6 +1,8 @@
+import crypto from 'crypto';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser, requireAuth } from '@/lib/auth';
+import { getClientIp } from '@/lib/rateLimit';
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
@@ -32,11 +34,31 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       return NextResponse.json({ error: 'Anzeige nicht gefunden' }, { status: 404 });
     }
 
-    // Record listing view asynchronously
+    // Record unique listing view (deduplicate within 30 min per IP/client, ignore owner views)
     try {
-      await prisma.listingView.create({
-        data: { listingId: item.id },
-      });
+      const isOwner = currentUser && currentUser.id === item.userId;
+      if (!isOwner) {
+        const ip = getClientIp(req);
+        const ipHash = crypto.createHash('sha256').update(ip).digest('hex').substring(0, 16);
+        const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+
+        const recentView = await prisma.listingView.findFirst({
+          where: {
+            listingId: item.id,
+            viewerIpHash: ipHash,
+            createdAt: { gte: thirtyMinutesAgo },
+          },
+        });
+
+        if (!recentView) {
+          await prisma.listingView.create({
+            data: {
+              listingId: item.id,
+              viewerIpHash: ipHash,
+            },
+          });
+        }
+      }
     } catch (_) {}
 
     const [viewsTotal, favoritesTotal] = await Promise.all([
