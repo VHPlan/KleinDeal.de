@@ -65,6 +65,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     return NextResponse.json({
       id: item.id,
+      userId: item.userId,
       isDemo: false,
       title: item.title,
       categorySlug: item.categorySlug,

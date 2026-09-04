@@ -33,11 +33,17 @@ import {
   Maximize2,
   X,
   Check,
-  User
+  User,
+  Edit3,
+  Trash2,
+  Pause,
+  ShoppingBag
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import EditListingModal from '@/components/EditListingModal';
+import PromotionModal from '@/components/PromotionModal';
 
 export default function ListingDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -46,16 +52,21 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
   const { showToast } = useToast();
   const { user, openAuthModal } = useAuth();
   
-  const [listing, setListing] = useState<Listing | null>(null);
+  const [listing, setListing] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState<string>('');
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [showPhone, setShowPhone] = useState(false);
   
-  // Make Offer Modal State
+  // Modals State
   const [isMakeOfferOpen, setIsMakeOfferOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
+
+  // Real Seller Reviews State
+  const [sellerReviews, setSellerReviews] = useState<{ averageRating: number | null; reviewCount: number } | null>(null);
 
   // Live Views & Favorites Counters
   const [favoritesCount, setFavoritesCount] = useState(8);
@@ -90,6 +101,18 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
             setFavoritesCount(data.favoritesCount);
           }
 
+          // Fetch real seller reviews
+          const targetSellerId = data.seller?.id || data.userId;
+          if (targetSellerId && !targetSellerId.startsWith('seller-')) {
+            try {
+              const revRes = await fetch(`/api/reviews?targetId=${targetSellerId}`);
+              if (revRes.ok) {
+                const revData = await revRes.json();
+                setSellerReviews(revData);
+              }
+            } catch (_) {}
+          }
+
           // Fetch similar listings from same category
           if (data.category) {
             const simRes = await fetch(`/api/listings?category=${data.category}&limit=5`);
@@ -109,6 +132,60 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
     }
     loadItem();
   }, [params.id]);
+
+  const isOwner = Boolean(
+    user && listing && (
+      user.id === listing.userId ||
+      user.id === listing.seller?.id ||
+      user.role === 'ADMIN'
+    )
+  );
+
+  const handleToggleStatus = async (newStatus: string) => {
+    if (!listing) return;
+    try {
+      const res = await fetch(`/api/listings/${listing.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        setListing((prev: any) => ({ ...prev, status: newStatus }));
+        showToast(
+          newStatus === 'PAUSED'
+            ? 'Anzeige wurde pausiert.'
+            : newStatus === 'SOLD'
+            ? '✓ Anzeige als "Verkauft" markiert!'
+            : '✓ Anzeige wurde erfolgreich aktiviert!',
+          'success'
+        );
+      } else {
+        const err = await res.json();
+        showToast(err.error || 'Fehler beim Ändern des Status', 'error');
+      }
+    } catch (err) {
+      showToast('Fehler bei der Kommunikation mit dem Server', 'error');
+    }
+  };
+
+  const handleDeleteListing = async () => {
+    if (!listing) return;
+    if (!window.confirm('Möchtest du diese Anzeige wirklich unwiderruflich löschen?')) return;
+    try {
+      const res = await fetch(`/api/listings/${listing.id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        showToast('✓ Anzeige erfolgreich gelöscht.', 'info');
+        router.push('/my-listings');
+      } else {
+        const d = await res.json();
+        showToast(d.error || 'Fehler beim Löschen', 'error');
+      }
+    } catch (err) {
+      showToast('Fehler beim Löschen der Anzeige', 'error');
+    }
+  };
 
   if (loading) {
     return (
@@ -278,6 +355,83 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
           </div>
         </div>
 
+        {/* Owner Management Banner */}
+        {isOwner && (
+          <div className="mb-6 p-4 sm:p-5 bg-gradient-to-r from-[#E9F7F1] via-[#F2FAF6] to-white border-2 border-[#17A673]/40 rounded-3xl shadow-subtle flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fadeIn">
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-2xl bg-[#17A673] text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                <Edit3 className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-sm font-black text-[#151815]">Deine Anzeige (Inserenten-Menü)</h3>
+                  <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${
+                    listing.status === 'ACTIVE'
+                      ? 'bg-white text-[#17A673] border-[#17A673]/40'
+                      : listing.status === 'SOLD'
+                      ? 'bg-blue-100 text-blue-800 border-blue-200'
+                      : 'bg-amber-100 text-amber-800 border-amber-200'
+                  }`}>
+                    {listing.status === 'ACTIVE' ? '🟢 Aktiv' : listing.status === 'SOLD' ? '🔵 Verkauft' : '⏸️ Pausiert'}
+                  </span>
+                </div>
+                <p className="text-xs text-[#68716A] mt-0.5">
+                  Du kannst diese Anzeige jederzeit bearbeiten, pausieren, als verkauft markieren oder löschen.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(true)}
+                className="px-3.5 py-2 bg-[#17A673] hover:bg-[#12835B] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>Bearbeiten</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleToggleStatus(listing.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE')}
+                className="px-3.5 py-2 bg-white hover:bg-[#F6F7F4] text-[#151815] border border-[#DEE3DE] text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+              >
+                <Pause className="w-3.5 h-3.5 text-[#68716A]" />
+                <span>{listing.status === 'ACTIVE' ? 'Pausieren' : 'Aktivieren'}</span>
+              </button>
+
+              {listing.status !== 'SOLD' && (
+                <button
+                  type="button"
+                  onClick={() => handleToggleStatus('SOLD')}
+                  className="px-3.5 py-2 bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                >
+                  <ShoppingBag className="w-3.5 h-3.5" />
+                  <span>Als Verkauft</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setIsPromotionModalOpen(true)}
+                className="px-3.5 py-2 bg-amber-400 hover:bg-amber-500 text-[#151815] text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 fill-[#151815]" />
+                <span>Hervorheben</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDeleteListing}
+                className="p-2 text-[#D94C3D] hover:bg-rose-50 border border-rose-200 bg-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                title="Anzeige löschen"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
           
@@ -327,7 +481,7 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
               {/* Thumbnails Row */}
               {listing.images && listing.images.length > 1 && (
                 <div className="flex gap-2 overflow-x-auto pb-1 pt-1">
-                  {listing.images.map((img, idx) => (
+                  {listing.images.map((img: string, idx: number) => (
                     <button
                       key={idx}
                       type="button"
@@ -501,101 +655,175 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
                 </div>
               </Link>
 
-              {/* Trust Indicators */}
+              {/* Trust Indicators with Real Live Data */}
               <div className="space-y-2.5 text-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-[#68716A]">Bewertung</span>
-                  <div className="flex items-center gap-1 text-[#151815] font-bold">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                    <span>4.9</span>
-                    <span className="text-[#68716A] font-normal">(28 Bewertungen)</span>
-                  </div>
+                  {sellerReviews && sellerReviews.reviewCount > 0 ? (
+                    <div className="flex items-center gap-1 text-[#151815] font-bold">
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      <span>{sellerReviews.averageRating}</span>
+                      <span className="text-[#68716A] font-normal">({sellerReviews.reviewCount} {sellerReviews.reviewCount === 1 ? 'Bewertung' : 'Bewertungen'})</span>
+                    </div>
+                  ) : (
+                    <span className="text-[11px] font-semibold text-[#68716A]">
+                      Neu auf KleinDeal (0 Bewertungen)
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-[#68716A]">Antwortrate</span>
+                  <span className="text-[#68716A]">Antwortzeit</span>
                   <span className="font-bold text-[#17A673] flex items-center gap-1">
                     <Zap className="w-3.5 h-3.5 text-[#17A673]" />
-                    <span>Sehr schnell (~15 Min.)</span>
+                    <span>Gewöhnlich innerhalb weniger Std.</span>
                   </span>
                 </div>
 
                 <div className="pt-2 flex flex-wrap gap-1.5 text-[10px]">
-                  <span className="bg-[#E9F7F1] text-[#17A673] px-2.5 py-1 rounded-lg border border-[#17A673]/30 font-bold flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" /> E-Mail bestätigt
-                  </span>
-                  <span className="bg-[#E9F7F1] text-[#17A673] px-2.5 py-1 rounded-lg border border-[#17A673]/30 font-bold flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" /> Telefon verifiziert
-                  </span>
+                  {listing.seller?.emailVerified ? (
+                    <span className="bg-[#E9F7F1] text-[#17A673] px-2.5 py-1 rounded-lg border border-[#17A673]/30 font-bold flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" /> E-Mail bestätigt
+                    </span>
+                  ) : (
+                    <span className="bg-[#F6F7F4] text-[#68716A] px-2.5 py-1 rounded-lg border border-[#DEE3DE] font-semibold">
+                      E-Mail unbestätigt
+                    </span>
+                  )}
+                  {listing.seller?.accountType && (
+                    <span className="bg-[#F6F7F4] text-[#151815] px-2.5 py-1 rounded-lg border border-[#DEE3DE] font-bold">
+                      {listing.seller.accountType}
+                    </span>
+                  )}
                 </div>
               </div>
 
               <hr className="border-[#DEE3DE]" />
 
-              {/* Direct Negotiation / Make Offer Button */}
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setIsMakeOfferOpen(true)}
-                  className="w-full bg-[#E9F7F1] hover:bg-[#DEE3DE]/40 text-[#17A673] border border-[#17A673]/30 font-bold text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
-                >
-                  <Tag className="w-3.5 h-3.5 text-[#17A673]" />
-                  <span>Preis vorschlagen / Angebot machen</span>
-                </button>
-              </div>
-
-              {/* Interactive Quick Chat Box */}
-              <div className="space-y-3 pt-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#151815] flex items-center gap-1.5">
-                    <MessageSquare className="w-3.5 h-3.5 text-[#17A673]" />
-                    <span>Nachricht an den Verkäufer</span>
+              {/* Owner Action Buttons (If logged in as owner) */}
+              {isOwner ? (
+                <div className="space-y-2.5">
+                  <span className="text-xs font-black text-[#151815] block">
+                    👑 Inserenten-Aktionen
                   </span>
-                  <span className="text-[10px] text-[#68716A]">Sofort-Chat</span>
-                </div>
+                  
+                  <button
+                    type="button"
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="w-full bg-[#17A673] hover:bg-[#12835B] text-white font-bold text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-2xs transition-all cursor-pointer"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    <span>Anzeige bearbeiten</span>
+                  </button>
 
-                {/* Preset Chips */}
-                <div className="flex flex-wrap gap-1.5">
-                  {QUICK_PRESETS.map((preset, idx) => (
+                  <div className="grid grid-cols-2 gap-2">
                     <button
-                      key={idx}
                       type="button"
-                      onClick={() => setQuickMessage(preset)}
-                      className="text-[11px] bg-[#F6F7F4] hover:bg-[#E9F7F1] hover:text-[#17A673] text-[#151815] border border-[#DEE3DE] hover:border-[#17A673]/30 px-2.5 py-1 rounded-lg transition-colors cursor-pointer text-left"
+                      onClick={() => handleToggleStatus(listing.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE')}
+                      className="w-full bg-[#F6F7F4] hover:bg-[#DEE3DE]/40 text-[#151815] border border-[#DEE3DE] font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     >
-                      {preset}
+                      <Pause className="w-3.5 h-3.5 text-[#68716A]" />
+                      <span>{listing.status === 'ACTIVE' ? 'Pausieren' : 'Aktivieren'}</span>
                     </button>
-                  ))}
-                </div>
 
-                {/* Message Input Form */}
-                <form onSubmit={handleSendMessage} className="space-y-2 pt-1">
-                  <textarea
-                    rows={3}
-                    placeholder="Deine Nachricht an den Verkäufer..."
-                    value={quickMessage}
-                    onChange={(e) => setQuickMessage(e.target.value)}
-                    className="w-full bg-[#F6F7F4] hover:bg-[#F1F3EE] focus:bg-white border border-[#DEE3DE] focus:border-[#17A673] focus:ring-2 focus:ring-[#17A673]/20 rounded-2xl p-3 text-xs text-[#151815] placeholder-[#68716A] outline-none transition-all resize-none font-medium"
-                  />
-
-                  {messageSent ? (
-                    <div className="bg-[#E9F7F1] border border-[#17A673] text-[#17A673] p-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 animate-fadeIn">
-                      <Check className="w-4 h-4" />
-                      <span>Nachricht gesendet! Weiter im Chat.</span>
-                    </div>
-                  ) : (
                     <button
-                      type="submit"
-                      disabled={isSendingMessage || !quickMessage.trim()}
-                      className="w-full bg-[#17A673] hover:bg-[#12835B] active:scale-95 disabled:opacity-50 text-white font-bold text-xs py-3 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#17A673]"
+                      type="button"
+                      onClick={() => handleToggleStatus('SOLD')}
+                      className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     >
-                      <Send className="w-3.5 h-3.5" />
-                      <span>{isSendingMessage ? 'Senden...' : 'Nachricht senden'}</span>
+                      <ShoppingBag className="w-3.5 h-3.5" />
+                      <span>Verkauft</span>
                     </button>
-                  )}
-                </form>
+                  </div>
 
-                {/* Call Seller Toggle Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsPromotionModalOpen(true)}
+                    className="w-full bg-amber-400 hover:bg-amber-500 text-[#151815] font-bold text-xs py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-2xs transition-colors cursor-pointer"
+                  >
+                    <Sparkles className="w-4 h-4 fill-[#151815]" />
+                    <span>TOP-Hervorheben</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleDeleteListing}
+                    className="w-full bg-white hover:bg-rose-50 text-[#D94C3D] border border-rose-200 font-bold text-xs py-2.5 px-4 rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Anzeige löschen</span>
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* Direct Negotiation / Make Offer Button */}
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setIsMakeOfferOpen(true)}
+                      className="w-full bg-[#E9F7F1] hover:bg-[#DEE3DE]/40 text-[#17A673] border border-[#17A673]/30 font-bold text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
+                    >
+                      <Tag className="w-3.5 h-3.5 text-[#17A673]" />
+                      <span>Preis vorschlagen / Angebot machen</span>
+                    </button>
+                  </div>
+
+                  {/* Interactive Quick Chat Box */}
+                  <div className="space-y-3 pt-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-[#151815] flex items-center gap-1.5">
+                        <MessageSquare className="w-3.5 h-3.5 text-[#17A673]" />
+                        <span>Nachricht an den Verkäufer</span>
+                      </span>
+                      <span className="text-[10px] text-[#68716A]">Sofort-Chat</span>
+                    </div>
+
+                    {/* Preset Chips */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {QUICK_PRESETS.map((preset, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setQuickMessage(preset)}
+                          className="text-[11px] bg-[#F6F7F4] hover:bg-[#E9F7F1] hover:text-[#17A673] text-[#151815] border border-[#DEE3DE] hover:border-[#17A673]/30 px-2.5 py-1 rounded-lg transition-colors cursor-pointer text-left"
+                        >
+                          {preset}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Message Input Form */}
+                    <form onSubmit={handleSendMessage} className="space-y-2 pt-1">
+                      <textarea
+                        rows={3}
+                        placeholder="Deine Nachricht an den Verkäufer..."
+                        value={quickMessage}
+                        onChange={(e) => setQuickMessage(e.target.value)}
+                        className="w-full bg-[#F6F7F4] hover:bg-[#F1F3EE] focus:bg-white border border-[#DEE3DE] focus:border-[#17A673] focus:ring-2 focus:ring-[#17A673]/20 rounded-2xl p-3 text-xs text-[#151815] placeholder-[#68716A] outline-none transition-all resize-none font-medium"
+                      />
+
+                      {messageSent ? (
+                        <div className="bg-[#E9F7F1] border border-[#17A673] text-[#17A673] p-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 animate-fadeIn">
+                          <Check className="w-4 h-4" />
+                          <span>Nachricht gesendet! Weiter im Chat.</span>
+                        </div>
+                      ) : (
+                        <button
+                          type="submit"
+                          disabled={isSendingMessage || !quickMessage.trim()}
+                          className="w-full bg-[#17A673] hover:bg-[#12835B] disabled:opacity-50 text-white font-bold text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span>{isSendingMessage ? 'Wird gesendet...' : 'Nachricht senden'}</span>
+                        </button>
+                      )}
+                    </form>
+                  </div>
+                </>
+              )}
+
+              {/* Call Seller Toggle Button (Only for buyers) */}
+              {!isOwner && (
                 <button
                   type="button"
                   onClick={() => setShowPhone(!showPhone)}
@@ -609,7 +837,7 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
                     }
                   </span>
                 </button>
-              </div>
+              )}
 
               {/* Report Ad Link */}
               <div className="pt-2 border-t border-[#DEE3DE] text-center">
@@ -723,6 +951,29 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
         reportedUserId={listing.seller?.id}
         targetTitle={listing.title}
       />
+
+      {/* Edit Listing Modal */}
+      {isEditModalOpen && (
+        <EditListingModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          listing={listing}
+          onSaved={(updated) => setListing(updated)}
+        />
+      )}
+
+      {/* Promotion Modal */}
+      {isPromotionModalOpen && (
+        <PromotionModal
+          isOpen={isPromotionModalOpen}
+          onClose={() => setIsPromotionModalOpen(false)}
+          listingId={listing.id}
+          listingTitle={title}
+          onPromoted={() => {
+            setListing((prev: any) => ({ ...prev, isTop: true }));
+          }}
+        />
+      )}
     </main>
   );
 }
