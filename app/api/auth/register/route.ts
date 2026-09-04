@@ -60,8 +60,13 @@ export async function POST(req: Request) {
       },
     });
 
-    // Send verification email (or log dev URL)
-    const emailResult = await sendVerificationEmail(normalizedEmail, verificationToken);
+    // Send verification email safely (non-blocking for registration completion)
+    let emailResult: any = { provider: 'development_log' };
+    try {
+      emailResult = await sendVerificationEmail(normalizedEmail, verificationToken);
+    } catch (emailErr) {
+      console.warn('Verification email sending error (non-fatal):', emailErr);
+    }
 
     // Create session token and set HttpOnly cookie
     const sessionToken = createSessionToken({ userId: user.id, email: user.email });
@@ -94,6 +99,9 @@ export async function POST(req: Request) {
     return response;
   } catch (error: any) {
     console.error('Registration error:', error);
-    return NextResponse.json({ error: 'Fehler bei der Registrierung' }, { status: 500 });
+    return NextResponse.json(
+      { error: error?.message || 'Fehler bei der Registrierung. Bitte versuche es erneut.' },
+      { status: 500 }
+    );
   }
 }
