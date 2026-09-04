@@ -30,13 +30,18 @@ import {
   Users,
   Loader2,
   Globe,
-  Compass
+  Compass,
+  LayoutGrid,
+  Map,
+  Tag,
+  Gift
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
+import ListingMapView from '@/components/ListingMapView';
 
 export default function HomePage() {
   const router = useRouter();
@@ -93,6 +98,8 @@ export default function HomePage() {
       }
     } catch {}
   };
+  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
+  const [quickFilter, setQuickFilter] = useState<string | null>(null);
   const [conditionFilter, setConditionFilter] = useState<string>('all');
   const [radiusFilter, setRadiusFilter] = useState<string>('all');
   const [minPrice, setMinPrice] = useState('');
@@ -241,13 +248,29 @@ export default function HomePage() {
         const match = text.match(/\b(19\d\d|20\d\d)\b/);
         if (match && parseInt(match[0]) < parseInt(minYear)) return false;
       }
-      // Real estate rooms
-      if (minRooms) {
-        const text = `${item.title} ${item.descriptionDe} ${item.descriptionEn}`.toLowerCase();
-        if (!text.includes(`${minRooms} zimmer`) && !text.includes(`${minRooms}-zimmer`) && !text.includes(`${minRooms} zi`)) {
-          // If explicitly requested min rooms, let it match text
-        }
+      // Quick Filter Pills
+      if (quickFilter === 'top' && !(item as any).isTop && !(item as any).isFeatured && (item.views ?? 0) < 3) {
+        return false;
       }
+      if (quickFilter === 'free' && item.priceType !== 'free' && item.price !== 0) {
+        return false;
+      }
+      if (quickFilter === 'under50' && (item.price > 50 || item.price === 0)) {
+        return false;
+      }
+      if (quickFilter === 'today' && item.postedDate !== 'Heute') {
+        return false;
+      }
+      if (quickFilter === 'video' && !item.hasVideo) {
+        return false;
+      }
+      if (quickFilter === 'verified' && !item.seller?.verified && !item.seller?.emailVerified) {
+        return false;
+      }
+      if (quickFilter === 'shipping' && item.deliveryOptions && !item.deliveryOptions.toLowerCase().includes('versand')) {
+        return false;
+      }
+
       return true;
     })
     .sort((a, b) => {
@@ -483,6 +506,36 @@ export default function HomePage() {
                 <span className="hidden sm:inline">Suche speichern</span>
               </button>
 
+              {/* View Mode Toggle: Grid vs Map */}
+              <div className="flex items-center bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('grid')}
+                  title="Raster-Ansicht"
+                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                    viewMode === 'grid'
+                      ? 'bg-white text-[#17A673] shadow-2xs'
+                      : 'text-[#68716A] hover:text-[#151815]'
+                  }`}
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Liste</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('map')}
+                  title="Karten-Ansicht"
+                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                    viewMode === 'map'
+                      ? 'bg-white text-[#17A673] shadow-2xs'
+                      : 'text-[#68716A] hover:text-[#151815]'
+                  }`}
+                >
+                  <Map className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Karte</span>
+                </button>
+              </div>
+
               <select
                 value={conditionFilter}
                 onChange={(e) => setConditionFilter(e.target.value)}
@@ -504,6 +557,37 @@ export default function HomePage() {
                 <option value="priceDesc">{t.sortPriceDesc}</option>
               </select>
             </div>
+          </div>
+
+          {/* Schnellfilter Pills Bar */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-4 no-scrollbar">
+            {[
+              { id: null, label: '🔥 Alle Angebote' },
+              { id: 'top', label: '⭐ Top-Deals' },
+              { id: 'free', label: '🎁 Zu verschenken' },
+              { id: 'under50', label: '💰 Unter 50 €' },
+              { id: 'today', label: '⚡ Heute neu' },
+              { id: 'video', label: '🎥 Mit Video' },
+              { id: 'verified', label: '🛡️ Geprüfte Nutzer' },
+              { id: 'shipping', label: '📦 Mit Versand' },
+            ].map((pill) => {
+              const isActive = (pill.id === null && quickFilter === null) || quickFilter === pill.id;
+              return (
+                <button
+                  key={pill.label}
+                  type="button"
+                  onClick={() => setQuickFilter(isActive && pill.id !== null ? null : pill.id)}
+                  className={`shrink-0 text-xs px-3.5 py-1.5 rounded-full font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                    isActive
+                      ? 'bg-[#17A673] text-white shadow-xs'
+                      : 'bg-white hover:bg-[#F6F7F4] text-[#151815] border border-[#DEE3DE] hover:border-[#17A673]'
+                  }`}
+                >
+                  <span>{pill.label}</span>
+                  {isActive && pill.id !== null && <Check className="w-3 h-3 text-white" />}
+                </button>
+              );
+            })}
           </div>
 
           {/* Expandable Advanced Filters Panel */}
@@ -840,6 +924,15 @@ export default function HomePage() {
                 </div>
               )}
             </div>
+          ) : viewMode === 'map' ? (
+            /* Interactive Live Map View */
+            <div className="my-4">
+              <ListingMapView 
+                listings={filteredListings.length > 0 ? filteredListings : (fallbackListings.length > 0 ? fallbackListings : listings)} 
+                userLocation={locationQuery}
+                onOpenVideo={(url, title) => setActiveVideo({ url, title })}
+              />
+            </div>
           ) : (
             /* Real Listings Grid */
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
@@ -847,6 +940,7 @@ export default function HomePage() {
                 <ListingCard
                   key={item.id}
                   listing={item}
+                  userLocation={locationQuery}
                   onOpenVideo={(url, title) => setActiveVideo({ url, title })}
                 />
               ))}

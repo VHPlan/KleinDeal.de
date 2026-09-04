@@ -10,6 +10,7 @@ import MobileBottomNav from '@/components/MobileBottomNav';
 import Footer from '@/components/Footer';
 import CookieConsent from '@/components/CookieConsent';
 import PresenceTracker from '@/components/PresenceTracker';
+import FloatingChat from '@/components/FloatingChat';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -66,6 +67,7 @@ export default function RootLayout({
                 </div>
                 <Footer />
                 <MobileBottomNav />
+                <FloatingChat />
                 <CookieConsent />
               </FavoritesProvider>
             </ToastProvider>
