@@ -22,7 +22,12 @@ import {
   Sparkles,
   RotateCcw,
   X,
-  Bell
+  Bell,
+  Zap,
+  Star,
+  Flame,
+  Check,
+  Users
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -163,50 +168,99 @@ export default function HomePage() {
         }}
       />
 
-      {/* Hero Banner Section (Background #F6F7F4) */}
-      <section className="bg-[#F6F7F4] border-b border-[#DEE3DE] py-12 lg:py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-[1536px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      {/* Hero Banner Section (Modern Glowing KleinDeal Theme) */}
+      <section className="relative bg-gradient-to-b from-[#F2F8F5] via-[#F6F7F4] to-white border-b border-[#DEE3DE] py-12 lg:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        
+        {/* Subtle Ambient Radial Glows */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#17A673]/10 rounded-full blur-3xl pointer-events-none -translate-y-1/2" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#17A673]/5 rounded-full blur-3xl pointer-events-none translate-y-1/2" />
+
+        <div className="relative max-w-[1536px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
           {/* Left Hero Column */}
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-[#151815] tracking-tight leading-[1.15]">
-              Einfach kaufen. Einfach verkaufen.
-              <span className="block text-[#17A673] mt-1">
-                Direkt in deiner Nähe.
+            
+            {/* Live Indicator Pill Badge */}
+            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/90 backdrop-blur-xs border border-[#17A673]/30 shadow-2xs text-xs font-bold text-[#151815] mx-auto lg:mx-0">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#17A673] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#17A673]"></span>
+              </span>
+              <span className="text-[#17A673] font-black">100% GEBÜHRENFREI</span>
+              <span className="text-[#DEE3DE]">|</span>
+              <span className="text-[#68716A]">Live-Marktplatz für Deutschland</span>
+            </div>
+
+            {/* Main Power Headline */}
+            <h1 className="text-3xl sm:text-5xl lg:text-[54px] font-black text-[#151815] tracking-tight leading-[1.12]">
+              Finde alles.{' '}
+              <span className="bg-gradient-to-r from-[#17A673] via-[#12835B] to-[#0E6847] bg-clip-text text-transparent">
+                Verkaufe schneller.
+              </span>
+              <span className="block text-2xl sm:text-4xl lg:text-[40px] font-extrabold text-[#151815] mt-2">
+                Direkt in deiner Nachbarschaft.
               </span>
             </h1>
 
-            <p className="text-sm sm:text-base text-[#68716A] font-normal leading-relaxed max-w-xl mx-auto lg:mx-0">
-              Entdecke attraktive Angebote aus deiner Region oder erstelle in wenigen Minuten deine eigene Anzeige.
+            {/* Engaging Subtitle */}
+            <p className="text-sm sm:text-base text-[#68716A] font-medium leading-relaxed max-w-xl mx-auto lg:mx-0">
+              Der moderne Kleinanzeigen-Marktplatz für Deutschland. Entdecke tausende geprüfte Angebote vor deiner Haustür oder inseriere in unter 2 Minuten — transparent, sicher & ohne Verkaufsprovision.
             </p>
 
-            {/* Trust Indicators */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 text-xs font-bold text-[#151815]">
-              <div className="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-[#DEE3DE] shadow-subtle">
+            {/* 3 Trust & Performance Pills */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 text-xs font-bold text-[#151815]">
+              <div className="flex items-center gap-1.5 bg-white px-3.5 py-2 rounded-xl border border-[#DEE3DE] shadow-2xs">
                 <ShieldCheck className="w-4 h-4 text-[#17A673]" />
-                <span>{t.trustVerified}</span>
+                <span>Käuferschutz & Verifiziert</span>
               </div>
-              <div className="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-[#DEE3DE] shadow-subtle">
+              <div className="flex items-center gap-1.5 bg-white px-3.5 py-2 rounded-xl border border-[#DEE3DE] shadow-2xs">
+                <Zap className="w-4 h-4 text-[#17A673]" />
+                <span>0 € Verkaufsgebühren</span>
+              </div>
+              <div className="flex items-center gap-1.5 bg-white px-3.5 py-2 rounded-xl border border-[#DEE3DE] shadow-2xs">
                 <MapPin className="w-4 h-4 text-[#17A673]" />
-                <span>{t.trustLocal}</span>
+                <span>Live-Umkreissuche</span>
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 pt-2">
+            {/* Action Buttons */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3.5 pt-2">
               <a
                 href="#listings"
-                className="bg-[#17A673] hover:bg-[#12835B] text-white font-bold text-sm px-6 py-3.5 rounded-xl shadow-subtle transition-colors cursor-pointer"
+                className="bg-gradient-to-r from-[#17A673] to-[#12835B] hover:opacity-95 text-white font-extrabold text-sm px-7 py-3.5 rounded-xl shadow-subtle hover:shadow-md transition-all flex items-center gap-2 cursor-pointer"
               >
-                {t.heroActionPrimary}
+                <Flame className="w-4 h-4 text-white" />
+                <span>Angebote in der Region entdecken</span>
               </a>
               <Link
                 href="/create"
-                className="bg-white hover:bg-[#F1F3EE] text-[#151815] font-bold text-sm px-6 py-3.5 rounded-xl border border-[#DEE3DE] transition-colors"
+                className="bg-white hover:bg-[#F1F3EE] text-[#151815] font-extrabold text-sm px-6 py-3.5 rounded-xl border border-[#DEE3DE] hover:border-[#17A673]/50 transition-all flex items-center gap-2 shadow-2xs"
               >
-                {t.heroActionSecondary}
+                <Plus className="w-4 h-4 text-[#17A673]" />
+                <span>Kostenlos inserieren</span>
               </Link>
             </div>
+
+            {/* Social Proof Trust Stack */}
+            <div className="flex items-center justify-center lg:justify-start gap-3 pt-2 text-xs text-[#68716A]">
+              <div className="flex -space-x-2 overflow-hidden">
+                <div className="inline-block h-7 w-7 rounded-full ring-2 ring-white bg-[#17A673] text-white text-[10px] font-bold flex items-center justify-center">M</div>
+                <div className="inline-block h-7 w-7 rounded-full ring-2 ring-white bg-[#12835B] text-white text-[10px] font-bold flex items-center justify-center">A</div>
+                <div className="inline-block h-7 w-7 rounded-full ring-2 ring-white bg-[#0E6847] text-white text-[10px] font-bold flex items-center justify-center">S</div>
+                <div className="inline-block h-7 w-7 rounded-full ring-2 ring-white bg-[#E9F7F1] text-[#17A673] text-[9px] font-extrabold flex items-center justify-center">+50k</div>
+              </div>
+              <div className="flex items-center gap-1 font-semibold text-[#151815]">
+                <div className="flex text-amber-500">
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                </div>
+                <span>4.9/5 von über 50.000+ Nutzern geschätzt</span>
+              </div>
+            </div>
+
           </div>
 
           {/* Right Hero Column: Modern Interactive Explorer & Live Deals Widget */}
