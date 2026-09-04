@@ -27,7 +27,8 @@ import {
   Star,
   Flame,
   Check,
-  Users
+  Users,
+  Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -78,6 +79,57 @@ export default function HomePage() {
 
   const [activeVideo, setActiveVideo] = useState<{ url: string; title: string } | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isLocatingRegion, setIsLocatingRegion] = useState(false);
+
+  const handleDiscoverRegion = () => {
+    if (!navigator.geolocation) {
+      const el = document.getElementById('listings');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      showToast('Standortbestimmung wird von deinem Browser nicht unterstützt.', 'info');
+      return;
+    }
+
+    setIsLocatingRegion(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const res = await fetch(`/api/location/autocomplete?lat=${latitude}&lon=${longitude}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.result) {
+              const detectedCity = data.result.city || data.result.name;
+              const detectedPlz = data.result.plz;
+              const loc = detectedCity || detectedPlz || 'Deutschland';
+              setLocationQuery(loc);
+              showToast(`📍 Standort erkannt: ${data.result.full || loc}. Zeige Angebote aus deiner Region!`, 'success');
+            } else {
+              showToast('Standort konnte nicht genau ermittelt werden.', 'info');
+            }
+          }
+        } catch (err) {
+          console.error('Location detection error:', err);
+          showToast('Fehler bei der Standortermittlung.', 'error');
+        } finally {
+          setIsLocatingRegion(false);
+          const el = document.getElementById('listings');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }
+      },
+      (err) => {
+        setIsLocatingRegion(false);
+        const el = document.getElementById('listings');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+        if (err.code === 1) {
+          showToast('Standort-Berechtigung wurde abgelehnt. Bitte gib deinen Ort manuell ein.', 'info');
+        } else {
+          showToast('Standort konnte nicht ermittelt werden.', 'info');
+        }
+      },
+      { timeout: 10000, enableHighAccuracy: false }
+    );
+  };
 
   const loadListings = useCallback(async () => {
     setLoading(true);
@@ -225,13 +277,24 @@ export default function HomePage() {
 
             {/* Action Buttons */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3.5 pt-2">
-              <a
-                href="#listings"
-                className="bg-gradient-to-r from-[#17A673] to-[#12835B] hover:opacity-95 text-white font-extrabold text-sm px-7 py-3.5 rounded-xl shadow-subtle hover:shadow-md transition-all flex items-center gap-2 cursor-pointer"
+              <button
+                type="button"
+                onClick={handleDiscoverRegion}
+                disabled={isLocatingRegion}
+                className="bg-gradient-to-r from-[#17A673] to-[#12835B] hover:opacity-95 text-white font-extrabold text-sm px-7 py-3.5 rounded-xl shadow-subtle hover:shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-80"
               >
-                <Flame className="w-4 h-4 text-white" />
-                <span>Angebote in der Region entdecken</span>
-              </a>
+                {isLocatingRegion ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    <span>Standort wird ermittelt...</span>
+                  </>
+                ) : (
+                  <>
+                    <Flame className="w-4 h-4 text-white" />
+                    <span>Angebote in der Region entdecken</span>
+                  </>
+                )}
+              </button>
               <Link
                 href="/create"
                 className="bg-white hover:bg-[#F1F3EE] text-[#151815] font-extrabold text-sm px-6 py-3.5 rounded-xl border border-[#DEE3DE] hover:border-[#17A673]/50 transition-all flex items-center gap-2 shadow-2xs"
