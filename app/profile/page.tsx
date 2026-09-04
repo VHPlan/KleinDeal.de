@@ -28,7 +28,9 @@ import {
   Smartphone,
   Check,
   X,
-  Bell
+  Bell,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -52,6 +54,9 @@ export default function ProfilePage() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Data states
   const [savedSearches, setSavedSearches] = useState<any[]>([]);
@@ -730,13 +735,24 @@ export default function ProfilePage() {
                 <label className="block text-xs font-bold text-[#151815] uppercase tracking-wider mb-1">
                   Aktuelles Passwort
                 </label>
-                <input
-                  type="password"
-                  required
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl px-4 py-3 text-sm text-[#151815] focus:outline-none focus:border-[#17A673]"
-                />
+                <div className="relative">
+                  <input
+                    type={showCurrentPassword ? 'text' : 'password'}
+                    required
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl pl-4 pr-11 py-3 text-sm text-[#151815] focus:outline-none focus:border-[#17A673] transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[#68716A] hover:text-[#17A673] rounded-lg hover:bg-black/5 transition-colors cursor-pointer"
+                    title={showCurrentPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
+                    aria-label={showCurrentPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
+                  >
+                    {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -744,26 +760,48 @@ export default function ProfilePage() {
                   <label className="block text-xs font-bold text-[#151815] uppercase tracking-wider mb-1">
                     Neues Passwort (min. 10 Zeichen)
                   </label>
-                  <input
-                    type="password"
-                    required
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl px-4 py-3 text-sm text-[#151815] focus:outline-none focus:border-[#17A673]"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? 'text' : 'password'}
+                      required
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl pl-4 pr-11 py-3 text-sm text-[#151815] focus:outline-none focus:border-[#17A673] transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[#68716A] hover:text-[#17A673] rounded-lg hover:bg-black/5 transition-colors cursor-pointer"
+                      title={showNewPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
+                      aria-label={showNewPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
+                    >
+                      {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-[#151815] uppercase tracking-wider mb-1">
                     Neues Passwort bestätigen
                   </label>
-                  <input
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl px-4 py-3 text-sm text-[#151815] focus:outline-none focus:border-[#17A673]"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full bg-[#F6F7F4] border border-[#DEE3DE] rounded-xl pl-4 pr-11 py-3 text-sm text-[#151815] focus:outline-none focus:border-[#17A673] transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[#68716A] hover:text-[#17A673] rounded-lg hover:bg-black/5 transition-colors cursor-pointer"
+                      title={showConfirmPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
+                      aria-label={showConfirmPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
               </div>
 

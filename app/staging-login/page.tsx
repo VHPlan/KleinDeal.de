@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ShieldCheck, Lock, AlertCircle, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Lock, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function StagingLoginPage() {
   const router = useRouter();
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -70,15 +71,23 @@ export default function StagingLoginPage() {
             </label>
             <div className="relative">
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 autoFocus
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Passwort eingeben..."
-                className="w-full bg-[#171A17] border border-[#2D332D] rounded-xl px-4 py-3 text-sm text-white placeholder-[#68716A] focus:outline-none focus:border-[#17A673]"
+                className="w-full bg-[#171A17] border border-[#2D332D] rounded-xl pl-4 pr-11 py-3 text-sm text-white placeholder-[#68716A] focus:outline-none focus:border-[#17A673]"
               />
-              <Lock className="w-4 h-4 text-[#68716A] absolute right-3.5 top-3.5 pointer-events-none" />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[#68716A] hover:text-[#17A673] rounded-lg transition-colors cursor-pointer"
+                title={showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
+                aria-label={showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 
