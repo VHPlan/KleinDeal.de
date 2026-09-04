@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { CATEGORIES } from '@/lib/categories';
 import { 
@@ -31,15 +31,15 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   Dog: <Dog className="w-5 h-5" />,
 };
 
-const CATEGORY_META: Record<string, { count: string; highlight: string; badge?: string }> = {
-  fahrzeuge: { count: '140+', highlight: 'Autos & E-Bikes', badge: 'Beliebt' },
-  immobilien: { count: '85+', highlight: 'Wohnungen & WG' },
-  technik: { count: '320+', highlight: 'Handys & Laptops', badge: '🔥 Trend' },
-  'haus-garten': { count: '210+', highlight: 'Möbel & Garten' },
-  mode: { count: '190+', highlight: 'Kleidung & Uhren' },
-  'baby-kind': { count: '95+', highlight: 'Spielzeug & Sitze' },
-  jobs: { count: '45+', highlight: 'Jobs & Minijobs' },
-  haustiere: { count: '65+', highlight: 'Hunde & Zubehör' },
+const CATEGORY_SUBTEXT: Record<string, { de: string; en: string }> = {
+  fahrzeuge: { de: 'Autos & E-Bikes', en: 'Cars & Bikes' },
+  immobilien: { de: 'Wohnungen & Häuser', en: 'Flats & Houses' },
+  technik: { de: 'Handys & Laptops', en: 'Phones & Laptops' },
+  'haus-garten': { de: 'Möbel & Garten', en: 'Furniture & Garden' },
+  mode: { de: 'Kleidung & Uhren', en: 'Clothes & Watches' },
+  'baby-kind': { de: 'Spielzeug & Sitze', en: 'Toys & Strollers' },
+  jobs: { de: 'Jobs & Minijobs', en: 'Jobs & Freelance' },
+  haustiere: { de: 'Tiere & Zubehör', en: 'Pets & Supplies' },
 };
 
 interface CategoryGridProps {
@@ -57,6 +57,22 @@ export default function CategoryGrid({
 }: CategoryGridProps) {
   const { lang, t } = useLanguage();
   const subcategoryBarRef = useRef<HTMLDivElement>(null);
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    async function loadCounts() {
+      try {
+        const res = await fetch('/api/categories/counts');
+        if (res.ok) {
+          const data = await res.json();
+          setCategoryCounts(data);
+        }
+      } catch (err) {
+        console.error('Error fetching category counts:', err);
+      }
+    }
+    loadCounts();
+  }, []);
 
   const activeCategoryObj = CATEGORIES.find((c) => c.id === selectedCategory);
 
@@ -141,7 +157,8 @@ export default function CategoryGrid({
         {CATEGORIES.map((cat) => {
           const isSelected = selectedCategory === cat.id;
           const name = lang === 'de' ? cat.nameDe : cat.nameEn;
-          const meta = CATEGORY_META[cat.id] || { count: '100+', highlight: '' };
+          const subtext = CATEGORY_SUBTEXT[cat.id] || { de: '', en: '' };
+          const count = categoryCounts[cat.id] ?? 0;
 
           return (
             <button
@@ -154,13 +171,6 @@ export default function CategoryGrid({
                   : 'bg-white hover:bg-[#FAFBFA] border-[#DEE3DE] hover:border-[#17A673] hover:shadow-subtle hover:-translate-y-0.5 sm:hover:-translate-y-1 text-[#151815]'
               }`}
             >
-              {/* Optional Top Badge (Hidden on mobile to save space) */}
-              {meta.badge && !isSelected && (
-                <span className="hidden sm:inline-block absolute -top-2 right-2 text-[9px] font-bold bg-[#E9F7F1] text-[#17A673] px-1.5 py-0.5 rounded-md shadow-2xs border border-[#17A673]/20">
-                  {meta.badge}
-                </span>
-              )}
-
               {/* Icon Container */}
               <div className="flex items-center justify-center sm:justify-between w-full mb-1.5 sm:mb-3">
                 <div className={`w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center transition-all ${
@@ -171,27 +181,25 @@ export default function CategoryGrid({
                   {ICON_MAP[cat.iconName]}
                 </div>
 
-                {/* Counter Pill (Desktop & Tablet) */}
+                {/* Real Dynamic Counter Pill (Desktop & Tablet) */}
                 <span className={`hidden sm:inline-block text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
                   isSelected 
                     ? 'bg-white text-[#17A673] shadow-2xs' 
                     : 'bg-[#F6F7F4] text-[#68716A] group-hover:text-[#151815]'
                 }`}>
-                  {meta.count}
+                  {count}
                 </span>
               </div>
 
-              {/* Title & Preview Subtext */}
+              {/* Title & Description Subtext */}
               <div className="w-full">
                 <h3 className={`text-[11px] sm:text-xs font-bold sm:font-extrabold leading-tight sm:leading-snug truncate sm:line-clamp-1 ${
                   isSelected ? 'text-[#17A673]' : 'text-[#151815] group-hover:text-[#17A673] transition-colors'
                 }`}>
                   {name}
                 </h3>
-                <p className={`hidden sm:block text-[10px] mt-0.5 line-clamp-1 ${
-                  isSelected ? 'text-[#68716A]' : 'text-[#68716A]'
-                }`}>
-                  {meta.highlight}
+                <p className="hidden sm:block text-[10px] mt-0.5 line-clamp-1 text-[#68716A]">
+                  {lang === 'de' ? subtext.de : subtext.en}
                 </p>
               </div>
 
