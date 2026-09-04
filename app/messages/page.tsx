@@ -20,6 +20,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import Link from 'next/link';
+import { audioAlert } from '@/lib/audioAlert';
 
 interface ConversationItem {
   id: string;
@@ -193,6 +194,9 @@ export default function MessagesPage() {
         setOffers(offers.map((o) => (o.id === offerId ? updated : o)));
         setCounterModalOpen(null);
         setCounterAmount('');
+        if (action === 'ACCEPT') {
+          audioAlert.playSuccessSound();
+        }
       }
     } catch (err) {
       console.error(err);
@@ -219,6 +223,7 @@ export default function MessagesPage() {
         setOffers([newOffer, ...offers]);
         setOfferModalOpen(false);
         setNewOfferAmount('');
+        audioAlert.playNotificationSound();
       }
     } catch (err) {
       console.error(err);

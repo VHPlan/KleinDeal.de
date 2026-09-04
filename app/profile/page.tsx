@@ -35,11 +35,13 @@ import {
   ExternalLink,
   Tag,
   Loader2,
-  Clock
+  Clock,
+  Star
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useFavorites } from '@/context/FavoritesContext';
+import ReviewModal from '@/components/ReviewModal';
 
 export default function ProfilePage() {
   const { user, logout, openAuthModal, login } = useAuth();
@@ -79,6 +81,17 @@ export default function ProfilePage() {
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [handoverInputCode, setHandoverInputCode] = useState<Record<string, string>>({});
   const [handoverGeneratedCode, setHandoverGeneratedCode] = useState<Record<string, string>>({});
+  const [reviewModalData, setReviewModalData] = useState<{
+    isOpen: boolean;
+    transactionId: string;
+    targetName: string;
+    listingTitle: string;
+  }>({
+    isOpen: false,
+    transactionId: '',
+    targetName: '',
+    listingTitle: '',
+  });
 
   // Status & feedback
   const [message, setMessage] = useState('');
@@ -668,9 +681,26 @@ export default function ProfilePage() {
                         )}
 
                         {tx.status === 'COMPLETED' && (
-                          <span className="text-xs font-bold text-[#17A673] flex items-center gap-1">
-                            <Check className="w-4 h-4" /> Übergabe erfolgt
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-[#17A673] flex items-center gap-1 bg-[#E9F7F1] px-2.5 py-1 rounded-md border border-[#17A673]/30">
+                              <Check className="w-3.5 h-3.5" /> Übergabe erfolgt
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setReviewModalData({
+                                  isOpen: true,
+                                  transactionId: tx.id,
+                                  targetName: otherParty?.name || 'Handelspartner',
+                                  listingTitle: tx.listing?.title || 'Artikel',
+                                });
+                              }}
+                              className="px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-[#151815] text-xs font-bold rounded-lg shadow-2xs transition-colors flex items-center gap-1 cursor-pointer"
+                            >
+                              <Star className="w-3.5 h-3.5 fill-[#151815]" />
+                              <span>Bewerten</span>
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -678,6 +708,15 @@ export default function ProfilePage() {
                 })}
               </div>
             )}
+
+            <ReviewModal
+              isOpen={reviewModalData.isOpen}
+              onClose={() => setReviewModalData((prev) => ({ ...prev, isOpen: false }))}
+              transactionId={reviewModalData.transactionId}
+              targetName={reviewModalData.targetName}
+              listingTitle={reviewModalData.listingTitle}
+              onReviewSubmitted={() => loadTabData('transactions')}
+            />
           </div>
         )}
 

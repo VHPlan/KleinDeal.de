@@ -32,7 +32,11 @@ import {
   Tag,
   HelpCircle,
   Loader2,
-  Plus
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  GripVertical,
+  Star
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -84,15 +88,64 @@ export default function CreateAdPage() {
   const [deliveryOptions, setDeliveryOptions] = useState('Abholung & Versand');
   const [description, setDescription] = useState('');
 
-  // Media
+  // Media & Drag-Drop Reorder
   const [images, setImages] = useState<string[]>([
     'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80',
   ]);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  // Category Specific Attributes (Vehicles & Real Estate)
+  const [vehicleYear, setVehicleYear] = useState('');
+  const [vehicleMileage, setVehicleMileage] = useState('');
+  const [vehicleFuel, setVehicleFuel] = useState('Benzin');
+  const [vehicleTransmission, setVehicleTransmission] = useState('Manuell');
+  const [propertyArea, setPropertyArea] = useState('');
+  const [propertyRooms, setPropertyRooms] = useState('');
+
+  const [hasVideo, setHasVideo] = useState(false);
+  const [videoUrl, setVideoUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+
+  // Submission
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPublished, setIsPublished] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [activePreviewTab, setActivePreviewTab] = useState<'card' | 'details'>('card');
+
+  const activeCategoryObj = CATEGORIES.find((c) => c.id === selectedCatId) || CATEGORIES[0];
+
+  const handleDragStart = (idx: number) => {
+    setDraggedIndex(idx);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (idx: number) => {
+    if (draggedIndex === null || draggedIndex === idx) return;
+    const reordered = [...images];
+    const [moved] = reordered.splice(draggedIndex, 1);
+    reordered.splice(idx, 0, moved);
+    setImages(reordered);
+    setDraggedIndex(null);
+  };
+
+  const handleMovePhoto = (from: number, to: number) => {
+    if (to < 0 || to >= images.length) return;
+    const reordered = [...images];
+    const [moved] = reordered.splice(from, 1);
+    reordered.splice(to, 0, moved);
+    setImages(reordered);
+  };
+
+  const handleSetAsCover = (idx: number) => {
+    if (idx === 0) return;
+    const reordered = [...images];
+    const [moved] = reordered.splice(idx, 1);
+    reordered.unshift(moved);
+    setImages(reordered);
+  };
 
   // Guard: If guest, redirect directly to login or register
   useEffect(() => {
@@ -101,8 +154,6 @@ export default function CreateAdPage() {
       router.replace('/anmelden?redirect=/create');
     }
   }, [user, router]);
-
-  const activeCategoryObj = CATEGORIES.find((c) => c.id === selectedCatId) || CATEGORIES[2];
 
   // Update subcategory when category changes
   const handleCategorySelect = (catId: string) => {
@@ -367,7 +418,106 @@ Privatverkauf: Keine Garantie, Gewährleistung oder Rücknahme.`;
               </div>
             </div>
 
-            {/* Section 2: Photos & Media */}
+            {/* Section 1.5: Category Specific Data (Vehicles & Real Estate) */}
+            {selectedCatId === 'fahrzeuge' && (
+              <div className="bg-white border border-[#DEE3DE] rounded-3xl p-6 shadow-subtle space-y-4 animate-fadeIn">
+                <div className="flex items-center gap-2 pb-2 border-b border-[#DEE3DE]">
+                  <div className="w-6 h-6 rounded-lg bg-[#E9F7F1] text-[#17A673] flex items-center justify-center text-xs font-bold">
+                    <Car className="w-3.5 h-3.5" />
+                  </div>
+                  <h3 className="text-sm font-black text-[#151815] uppercase tracking-wider">
+                    Fahrzeugdaten
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-[#151815] mb-1">Erstzulassung (Baujahr)</label>
+                    <input
+                      type="number"
+                      placeholder="z.B. 2020"
+                      value={vehicleYear}
+                      onChange={(e) => setVehicleYear(e.target.value)}
+                      className="w-full bg-[#F6F7F4] border border-[#DEE3DE] focus:border-[#17A673] rounded-xl px-3 py-2 text-xs font-semibold outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#151815] mb-1">Kilometerstand (km)</label>
+                    <input
+                      type="number"
+                      placeholder="z.B. 45000"
+                      value={vehicleMileage}
+                      onChange={(e) => setVehicleMileage(e.target.value)}
+                      className="w-full bg-[#F6F7F4] border border-[#DEE3DE] focus:border-[#17A673] rounded-xl px-3 py-2 text-xs font-semibold outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#151815] mb-1">Kraftstoff</label>
+                    <select
+                      value={vehicleFuel}
+                      onChange={(e) => setVehicleFuel(e.target.value)}
+                      className="w-full bg-[#F6F7F4] border border-[#DEE3DE] focus:border-[#17A673] rounded-xl px-3 py-2 text-xs font-semibold outline-none"
+                    >
+                      <option value="Benzin">Benzin</option>
+                      <option value="Diesel">Diesel</option>
+                      <option value="Elektro">Elektro</option>
+                      <option value="Hybrid">Hybrid</option>
+                      <option value="Autogas (LPG)">Autogas (LPG)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#151815] mb-1">Getriebe</label>
+                    <select
+                      value={vehicleTransmission}
+                      onChange={(e) => setVehicleTransmission(e.target.value)}
+                      className="w-full bg-[#F6F7F4] border border-[#DEE3DE] focus:border-[#17A673] rounded-xl px-3 py-2 text-xs font-semibold outline-none"
+                    >
+                      <option value="Manuell">Manuell (Schaltgetriebe)</option>
+                      <option value="Automatik">Automatik</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {selectedCatId === 'immobilien' && (
+              <div className="bg-white border border-[#DEE3DE] rounded-3xl p-6 shadow-subtle space-y-4 animate-fadeIn">
+                <div className="flex items-center gap-2 pb-2 border-b border-[#DEE3DE]">
+                  <div className="w-6 h-6 rounded-lg bg-[#E9F7F1] text-[#17A673] flex items-center justify-center text-xs font-bold">
+                    <Home className="w-3.5 h-3.5" />
+                  </div>
+                  <h3 className="text-sm font-black text-[#151815] uppercase tracking-wider">
+                    Immobiliendaten
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-[#151815] mb-1">Wohnfläche (m²)</label>
+                    <input
+                      type="number"
+                      placeholder="z.B. 75"
+                      value={propertyArea}
+                      onChange={(e) => setPropertyArea(e.target.value)}
+                      className="w-full bg-[#F6F7F4] border border-[#DEE3DE] focus:border-[#17A673] rounded-xl px-3 py-2 text-xs font-semibold outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#151815] mb-1">Zimmeranzahl</label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      placeholder="z.B. 3"
+                      value={propertyRooms}
+                      onChange={(e) => setPropertyRooms(e.target.value)}
+                      className="w-full bg-[#F6F7F4] border border-[#DEE3DE] focus:border-[#17A673] rounded-xl px-3 py-2 text-xs font-semibold outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Section 2: Photos & Media (Drag & Drop Reorderable) */}
             <div className="bg-white border border-[#DEE3DE] rounded-3xl p-6 shadow-subtle space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-[#DEE3DE]">
                 <div className="flex items-center gap-2">
@@ -378,24 +528,75 @@ Privatverkauf: Keine Garantie, Gewährleistung oder Rücknahme.`;
                     Fotos ({images.length}/10)
                   </h3>
                 </div>
-                <span className="text-[11px] text-[#68716A]">Erstes Foto ist das Titelbild</span>
+                <span className="text-[11px] text-[#68716A]">💡 Per Drag & Drop sortieren</span>
               </div>
 
-              {/* Photo Upload & Gallery Grid */}
+              {/* Photo Upload & Drag & Drop Gallery Grid */}
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 pt-1">
                 {images.map((img, idx) => (
-                  <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden border border-[#DEE3DE] bg-[#F6F7F4] group">
-                    <Image src={img} alt={`Upload ${idx + 1}`} fill unoptimized sizes="160px" className="object-cover" />
+                  <div 
+                    key={idx} 
+                    draggable
+                    onDragStart={() => handleDragStart(idx)}
+                    onDragOver={(e) => handleDragOver(e)}
+                    onDrop={() => handleDrop(idx)}
+                    className={`relative aspect-square rounded-2xl overflow-hidden border bg-[#F6F7F4] group cursor-grab active:cursor-grabbing transition-all ${
+                      draggedIndex === idx ? 'opacity-40 scale-95 border-[#17A673]' : 'border-[#DEE3DE] hover:border-[#17A673]'
+                    }`}
+                  >
+                    <Image src={img} alt={`Upload ${idx + 1}`} fill unoptimized sizes="160px" className="object-cover pointer-events-none" />
+                    
+                    {/* Delete button */}
                     <button
                       type="button"
                       onClick={() => setImages(images.filter((_, i) => i !== idx))}
-                      className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-[#171A17]/80 text-white flex items-center justify-center hover:bg-[#D94C3D] transition-colors z-10"
+                      title="Foto löschen"
+                      className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-[#171A17]/80 text-white flex items-center justify-center hover:bg-[#D94C3D] transition-colors z-10 shadow-xs"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
+
+                    {/* Quick Move Left / Right Controls on hover */}
+                    <div className="absolute inset-x-0 bottom-0 p-1.5 bg-gradient-to-t from-black/70 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between text-white text-[10px]">
+                      {idx > 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => handleMovePhoto(idx, idx - 1)}
+                          title="Nach links verschieben"
+                          className="p-1 hover:bg-white/20 rounded"
+                        >
+                          <ChevronLeft className="w-3.5 h-3.5" />
+                        </button>
+                      ) : <span />}
+
+                      {idx !== 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleSetAsCover(idx)}
+                          title="Als Hauptbild setzen"
+                          className="px-1.5 py-0.5 bg-[#17A673] hover:bg-[#12835B] rounded text-[9px] font-bold"
+                        >
+                          Titelbild
+                        </button>
+                      )}
+
+                      {idx < images.length - 1 ? (
+                        <button
+                          type="button"
+                          onClick={() => handleMovePhoto(idx, idx + 1)}
+                          title="Nach rechts verschieben"
+                          className="p-1 hover:bg-white/20 rounded"
+                        >
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                      ) : <span />}
+                    </div>
+
+                    {/* Cover Photo Badge */}
                     {idx === 0 && (
-                      <span className="absolute bottom-1.5 left-1.5 bg-[#17A673] text-white text-[9px] font-black px-1.5 py-0.5 rounded-md shadow-xs z-10">
-                        Titelbild
+                      <span className="absolute bottom-1.5 left-1.5 bg-[#17A673] text-white text-[9px] font-black px-1.5 py-0.5 rounded-md shadow-xs z-10 flex items-center gap-0.5">
+                        <Star className="w-2.5 h-2.5 fill-white" />
+                        <span>Hauptbild</span>
                       </span>
                     )}
                   </div>

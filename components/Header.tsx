@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 
 import { useRouter } from 'next/navigation';
+import { audioAlert } from '@/lib/audioAlert';
 
 interface HeaderProps {
   onSearchChange?: (term: string, location: string, radius: string) => void;
@@ -40,6 +41,42 @@ export default function Header({ onSearchChange }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [adminOnlineCount, setAdminOnlineCount] = useState<number | null>(null);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState<number>(0);
+
+  // Poll for unread messages and play audio chime on new incoming messages
+  useEffect(() => {
+    if (!user?.id) {
+      setUnreadMessagesCount(0);
+      return;
+    }
+
+    let prevCount: number | null = null;
+    let isMounted = true;
+
+    const checkUnread = async () => {
+      try {
+        const res = await fetch(`/api/conversations?userId=${user.id}`);
+        if (res.ok && isMounted) {
+          const convs = await res.json();
+          if (Array.isArray(convs)) {
+            const count = convs.reduce((acc: number, c: any) => acc + (c.unreadCount || 0), 0);
+            if (prevCount !== null && count > prevCount) {
+              audioAlert.playNotificationSound();
+            }
+            prevCount = count;
+            setUnreadMessagesCount(count);
+          }
+        }
+      } catch (_) {}
+    };
+
+    checkUnread();
+    const interval = setInterval(checkUnread, 10000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [user]);
 
   useEffect(() => {
     if (user?.role === 'ADMIN') {
@@ -134,6 +171,22 @@ export default function Header({ onSearchChange }: HeaderProps) {
                   </span>
                 )}
               </Link>
+
+              {/* Messages Quick Link */}
+              {user && (
+                <Link
+                  href="/messages"
+                  title="Nachrichten & Angebote"
+                  className="relative p-2 text-[#68716A] hover:text-[#17A673] hover:bg-[#E9F7F1] border border-transparent hover:border-[#17A673]/30 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-[#17A673]"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  {unreadMessagesCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-[#17A673] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-2xs animate-pulse">
+                      {unreadMessagesCount}
+                    </span>
+                  )}
+                </Link>
+              )}
 
               {/* User Account / Auth */}
               {user ? (

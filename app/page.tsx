@@ -77,6 +77,14 @@ export default function HomePage() {
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'priceAsc' | 'priceDesc'>('newest');
 
+  // Category specific filter states
+  const [fuelFilter, setFuelFilter] = useState<string>('all');
+  const [transmissionFilter, setTransmissionFilter] = useState<string>('all');
+  const [minYear, setMinYear] = useState('');
+  const [maxKm, setMaxKm] = useState('');
+  const [minArea, setMinArea] = useState('');
+  const [minRooms, setMinRooms] = useState('');
+
   const [activeVideo, setActiveVideo] = useState<{ url: string; title: string } | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
   const [isLocatingRegion, setIsLocatingRegion] = useState(false);
@@ -181,6 +189,29 @@ export default function HomePage() {
       if (verifiedOnly && !item.seller?.verified && !item.seller?.identityVerified && !item.seller?.emailVerified) {
         return false;
       }
+      // Vehicle fuel filter
+      if (fuelFilter !== 'all') {
+        const text = `${item.title} ${item.descriptionDe} ${item.descriptionEn}`.toLowerCase();
+        if (!text.includes(fuelFilter.toLowerCase())) return false;
+      }
+      // Vehicle transmission filter
+      if (transmissionFilter !== 'all') {
+        const text = `${item.title} ${item.descriptionDe} ${item.descriptionEn}`.toLowerCase();
+        if (!text.includes(transmissionFilter.toLowerCase())) return false;
+      }
+      // Vehicle min year
+      if (minYear) {
+        const text = `${item.title} ${item.descriptionDe} ${item.descriptionEn}`;
+        const match = text.match(/\b(19\d\d|20\d\d)\b/);
+        if (match && parseInt(match[0]) < parseInt(minYear)) return false;
+      }
+      // Real estate rooms
+      if (minRooms) {
+        const text = `${item.title} ${item.descriptionDe} ${item.descriptionEn}`.toLowerCase();
+        if (!text.includes(`${minRooms} zimmer`) && !text.includes(`${minRooms}-zimmer`) && !text.includes(`${minRooms} zi`)) {
+          // If explicitly requested min rooms, let it match text
+        }
+      }
       return true;
     })
     .sort((a, b) => {
@@ -194,7 +225,13 @@ export default function HomePage() {
     (minPrice ? 1 : 0) + 
     (maxPrice ? 1 : 0) + 
     (deliveryFilter !== 'all' ? 1 : 0) + 
-    (verifiedOnly ? 1 : 0);
+    (verifiedOnly ? 1 : 0) +
+    (fuelFilter !== 'all' ? 1 : 0) +
+    (transmissionFilter !== 'all' ? 1 : 0) +
+    (minYear ? 1 : 0) +
+    (maxKm ? 1 : 0) +
+    (minArea ? 1 : 0) +
+    (minRooms ? 1 : 0);
 
   const resetAllFilters = () => {
     setSelectedCategory(null);
@@ -207,9 +244,15 @@ export default function HomePage() {
     setMaxPrice('');
     setDeliveryFilter('all');
     setVerifiedOnly(false);
+    setFuelFilter('all');
+    setTransmissionFilter('all');
+    setMinYear('');
+    setMaxKm('');
+    setMinArea('');
+    setMinRooms('');
   };
 
-  const isFilteringActive = selectedCategory || selectedSubcategory || searchQuery || locationQuery || conditionFilter !== 'all' || radiusFilter !== 'all' || minPrice !== '' || maxPrice !== '' || deliveryFilter !== 'all' || verifiedOnly;
+  const isFilteringActive = selectedCategory || selectedSubcategory || searchQuery || locationQuery || conditionFilter !== 'all' || radiusFilter !== 'all' || minPrice !== '' || maxPrice !== '' || deliveryFilter !== 'all' || verifiedOnly || fuelFilter !== 'all' || transmissionFilter !== 'all' || minYear !== '' || maxKm !== '' || minArea !== '' || minRooms !== '';
 
   return (
     <main className="min-h-screen bg-white pb-16">
@@ -552,6 +595,98 @@ export default function HomePage() {
                   </label>
                 </div>
               </div>
+
+              {/* Category-specific attributes (Vehicles) */}
+              {(selectedCategory === 'fahrzeuge' || !selectedCategory) && (
+                <div className="pt-3 border-t border-[#DEE3DE] space-y-2">
+                  <span className="text-[11px] font-bold text-[#17A673] uppercase tracking-wider flex items-center gap-1">
+                    🚗 Fahrzeug-Spezifikationen
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-[#68716A] mb-1">Kraftstoff</label>
+                      <select
+                        value={fuelFilter}
+                        onChange={(e) => setFuelFilter(e.target.value)}
+                        className="w-full bg-white border border-[#DEE3DE] rounded-xl px-2.5 py-1.5 text-xs font-medium text-[#151815] outline-none"
+                      >
+                        <option value="all">Alle Kraftstoffe</option>
+                        <option value="Benzin">Benzin</option>
+                        <option value="Diesel">Diesel</option>
+                        <option value="Elektro">Elektro</option>
+                        <option value="Hybrid">Hybrid</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-[#68716A] mb-1">Getriebe</label>
+                      <select
+                        value={transmissionFilter}
+                        onChange={(e) => setTransmissionFilter(e.target.value)}
+                        className="w-full bg-white border border-[#DEE3DE] rounded-xl px-2.5 py-1.5 text-xs font-medium text-[#151815] outline-none"
+                      >
+                        <option value="all">Alle Getriebe</option>
+                        <option value="Manuell">Manuell</option>
+                        <option value="Automatik">Automatik</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-[#68716A] mb-1">Erstzulassung ab</label>
+                      <input
+                        type="number"
+                        placeholder="z.B. 2018"
+                        value={minYear}
+                        onChange={(e) => setMinYear(e.target.value)}
+                        className="w-full bg-white border border-[#DEE3DE] rounded-xl px-2.5 py-1.5 text-xs font-medium text-[#151815] outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-[#68716A] mb-1">KM-Stand max</label>
+                      <input
+                        type="number"
+                        placeholder="z.B. 100000"
+                        value={maxKm}
+                        onChange={(e) => setMaxKm(e.target.value)}
+                        className="w-full bg-white border border-[#DEE3DE] rounded-xl px-2.5 py-1.5 text-xs font-medium text-[#151815] outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Category-specific attributes (Real Estate) */}
+              {(selectedCategory === 'immobilien' || !selectedCategory) && (
+                <div className="pt-3 border-t border-[#DEE3DE] space-y-2">
+                  <span className="text-[11px] font-bold text-[#17A673] uppercase tracking-wider flex items-center gap-1">
+                    🏠 Immobilien-Spezifikationen
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-[#68716A] mb-1">Wohnfläche min (m²)</label>
+                      <input
+                        type="number"
+                        placeholder="z.B. 50"
+                        value={minArea}
+                        onChange={(e) => setMinArea(e.target.value)}
+                        className="w-full bg-white border border-[#DEE3DE] rounded-xl px-2.5 py-1.5 text-xs font-medium text-[#151815] outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-[#68716A] mb-1">Zimmer min</label>
+                      <input
+                        type="number"
+                        placeholder="z.B. 2"
+                        value={minRooms}
+                        onChange={(e) => setMinRooms(e.target.value)}
+                        className="w-full bg-white border border-[#DEE3DE] rounded-xl px-2.5 py-1.5 text-xs font-medium text-[#151815] outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

@@ -320,3 +320,98 @@ export async function sendSecurityAlertEmail(email: string, details: string): Pr
     text,
   });
 }
+
+/**
+ * 5. Template: Neue Nachricht erhalten
+ */
+export async function sendMessageNotificationEmail(
+  email: string,
+  senderName: string,
+  listingTitle: string,
+  messageExcerpt: string,
+  conversationId: string
+): Promise<EmailDeliveryResult> {
+  const chatUrl = `${env.APP_URL}/messages?conversationId=${conversationId}`;
+
+  const html = buildEmailHtml(
+    'Neue Nachricht erhalten',
+    `
+      <p><strong>${senderName}</strong> hat dir eine Nachricht bezüglich deiner Anzeige <strong>"${listingTitle}"</strong> gesendet:</p>
+      <div style="background: #F6F7F4; border-left: 3px solid #17A673; padding: 12px 16px; margin: 16px 0; border-radius: 4px; font-style: italic; font-size: 13px; color: #151815;">
+        "${messageExcerpt.substring(0, 300)}"
+      </div>
+      <p>Klicke auf den Button unten, um direkt im Chat zu antworten.</p>
+    `,
+    { text: 'Nachricht im Chat öffnen', url: chatUrl }
+  );
+
+  const text = `Neue Nachricht von ${senderName} zu "${listingTitle}":\n\n"${messageExcerpt}"\n\nAntworten: ${chatUrl}`;
+
+  return emailService.send({
+    to: email,
+    subject: `Neue Nachricht von ${senderName} zu "${listingTitle}" – KleinDeal.de`,
+    html,
+    text,
+  });
+}
+
+/**
+ * 6. Template: Neues Preisangebot / Gegenangebot
+ */
+export async function sendOfferNotificationEmail(
+  email: string,
+  senderName: string,
+  listingTitle: string,
+  offerAmount: number,
+  conversationId: string
+): Promise<EmailDeliveryResult> {
+  const chatUrl = `${env.APP_URL}/messages?conversationId=${conversationId}`;
+
+  const html = buildEmailHtml(
+    'Neues Preisangebot erhalten',
+    `
+      <p><strong>${senderName}</strong> hat dir ein Preisangebot über <span style="color: #17A673; font-weight: 800; font-size: 18px;">${offerAmount.toFixed(2)} €</span> für deine Anzeige <strong>"${listingTitle}"</strong> gemacht.</p>
+      <p>Du kannst das Angebot im Nachrichtenbereich annehmen, ablehnen oder ein Gegenangebot machen.</p>
+    `,
+    { text: 'Angebot prüfen & verhandeln', url: chatUrl }
+  );
+
+  const text = `Neues Angebot von ${senderName}: ${offerAmount.toFixed(2)} € für "${listingTitle}".\n\nPrüfen unter: ${chatUrl}`;
+
+  return emailService.send({
+    to: email,
+    subject: `Neues Angebot über ${offerAmount.toFixed(2)} € für "${listingTitle}" – KleinDeal.de`,
+    html,
+    text,
+  });
+}
+
+/**
+ * 7. Template: Bewertungsanfrage nach erfolgreicher Übergabe
+ */
+export async function sendReviewRequestEmail(
+  email: string,
+  otherPartyName: string,
+  listingTitle: string
+): Promise<EmailDeliveryResult> {
+  const profileUrl = `${env.APP_URL}/profile?tab=transactions`;
+
+  const html = buildEmailHtml(
+    'Wie war deine Erfahrung?',
+    `
+      <p>Die Übergabe für <strong>"${listingTitle}"</strong> mit <strong>${otherPartyName}</strong> wurde erfolgreich abgeschlossen.</p>
+      <p>Bitte nimm dir eine Minute Zeit, um ${otherPartyName} zu bewerten. Deine Bewertung stärkt das Vertrauen in unserer Gemeinschaft.</p>
+    `,
+    { text: 'Jetzt Bewertung abgeben', url: profileUrl }
+  );
+
+  const text = `Transaktion für "${listingTitle}" abgeschlossen!\n\nBitte bewerte deine Erfahrung mit ${otherPartyName} unter: ${profileUrl}`;
+
+  return emailService.send({
+    to: email,
+    subject: `Bewerte deine Erfahrung mit ${otherPartyName} – KleinDeal.de`,
+    html,
+    text,
+  });
+}
+
