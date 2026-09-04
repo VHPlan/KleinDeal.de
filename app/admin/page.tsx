@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import { Shield, AlertTriangle, FileText, CheckCircle, XCircle, UserX, Trash2, Eye } from 'lucide-react';
 import Link from 'next/link';
 
@@ -105,7 +104,6 @@ export default function AdminDashboardPage() {
             </Link>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -262,7 +260,6 @@ export default function AdminDashboardPage() {
         )}
       </main>
 
-      <Footer />
     </div>
   );
 }

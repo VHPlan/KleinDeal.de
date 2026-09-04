@@ -1,6 +1,5 @@
 import React from 'react';
 import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import { Flag, Scale, CheckCircle2, ShieldQuestion } from 'lucide-react';
 
 export const metadata = {
@@ -71,7 +70,6 @@ export default function MeldeverfahrenPage() {
         </div>
       </main>
 
-      <Footer />
     </div>
   );
 }

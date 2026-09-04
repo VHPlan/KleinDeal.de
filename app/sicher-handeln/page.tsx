@@ -1,6 +1,5 @@
 import React from 'react';
 import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import { ShieldCheck, UserCheck, Lock, AlertTriangle, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 
@@ -79,7 +78,6 @@ export default function SicherHandelnPage() {
         </div>
       </main>
 
-      <Footer />
     </div>
   );
 }
