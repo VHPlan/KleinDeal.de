@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import VideoModal from '@/components/VideoModal';
 import ListingCard from '@/components/ListingCard';
 import MakeOfferModal from '@/components/MakeOfferModal';
+import ReportModal from '@/components/ReportModal';
 import { useLanguage } from '@/context/LanguageContext';
 import { useFavorites } from '@/context/FavoritesContext';
 import { useToast } from '@/context/ToastContext';
@@ -54,6 +55,7 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
   
   // Make Offer Modal State
   const [isMakeOfferOpen, setIsMakeOfferOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   // Live Views & Favorites Counters
   const [favoritesCount, setFavoritesCount] = useState(8);
@@ -614,7 +616,7 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
               <div className="pt-2 border-t border-[#DEE3DE] text-center">
                 <button
                   type="button"
-                  onClick={() => showToast('Vielen Dank! Die Anzeige wurde zur Prüfung weitergeleitet.', 'info')}
+                  onClick={() => setIsReportModalOpen(true)}
                   className="text-[11px] font-semibold text-[#68716A] hover:text-[#D94C3D] inline-flex items-center gap-1 transition-colors cursor-pointer"
                 >
                   <AlertTriangle className="w-3.5 h-3.5" />
@@ -712,6 +714,16 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
           onClose={() => setIsVideoModalOpen(false)}
         />
       )}
+
+      {/* DSA Report Modal */}
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        targetType="LISTING"
+        targetId={listing.id}
+        reportedUserId={listing.seller?.id}
+        targetTitle={listing.title}
+      />
     </main>
   );
 }
